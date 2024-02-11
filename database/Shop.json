@@ -1,0 +1,25 @@
+{
+	"name": "Shop",
+	"properties": {
+		"Name": "Shop",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/parquet",
+			"Properties": {
+				"FormatType": "csv",
+				"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage"
+			}
+		},
+		"PublishStatus": "PUBLISHED",
+		"ObjectVersion": 7,
+		"ObjectId": "e516f7a7-737c-4a09-9760-55a8bd6439c5"
+	},
+	"type": "DATABASE"
+}
