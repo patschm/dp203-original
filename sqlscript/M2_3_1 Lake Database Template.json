@@ -5,7 +5,7 @@
 			"name": "Module 2.3"
 		},
 		"content": {
-			"query": "-- Generate From Template\n-- Manually\n-- 1) Create Database\n-- 2) Create Table from Data Lake. Make sure input folder points to an existing folder where the data is in\n-- 3) Create Custom. Make sure input folder points to an axisting FILE!!!! You cvannot select a file >:-( ",
+			"query": "-- Generate From Template\n-- Manually\n-- 1) Create Database\n-- 2) Create Table from Data Lake. Make sure input folder points to an existing folder where the data is in\n-- 3) Create Custom. Make sure input folder points to an axisting FILE!!!! You cannot select a file >:-( ",
 			"metadata": {
 				"language": "sql"
 			},
