@@ -1,7 +1,7 @@
 {
-	"name": "Person",
+	"name": "Persons",
 	"properties": {
-		"Name": "Person",
+		"Name": "Persons",
 		"EntityType": "TABLE",
 		"Namespace": {
 			"DatabaseName": "DBSales"
@@ -59,13 +59,13 @@
 				"FormatType": "parquet",
 				"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 				"Properties": {
-					"path": "abfss://files@patsynapselake.dfs.core.windows.net/DBSales/Person",
+					"path": "abfss://files@patsynapselake.dfs.core.windows.net/DBSales/Persons",
 					"FormatTypeSetToDatabaseDefault": true
 				}
 			},
 			"Source": {
 				"Provider": "ADLS",
-				"Location": "abfss://files@patsynapselake.dfs.core.windows.net/DBSales/Person",
+				"Location": "abfss://files@patsynapselake.dfs.core.windows.net/DBSales/Persons",
 				"Properties": {
 					"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage",
 					"LocationSetToDatabaseDefault": true
