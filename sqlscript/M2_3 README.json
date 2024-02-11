@@ -1,0 +1,20 @@
+{
+	"name": "M2_3 README",
+	"properties": {
+		"folder": {
+			"name": "Module 2.3"
+		},
+		"content": {
+			"query": "-- If you're connected to GitHub make sure your working in Live Mode\n-- Check dropdown in top lef dropdown!\n-- Lots of things won't work in GitHub mode",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
