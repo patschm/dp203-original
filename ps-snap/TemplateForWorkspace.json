@@ -485,7 +485,7 @@
 					"name": "Module 2.3"
 				},
 				"content": {
-					"query": "-- If you're connected to GitHub make sure your working in Live Mode\n-- Check dropdown in top lef dropdown!\n-- Lots of things won't work in GitHub mode",
+					"query": "-- If you're connected to GitHub make sure your working in Live Mode\n-- Check dropdown in top lef dropdown!\n-- Lots of things won't work in GitHub mode\n-- No Problems yet",
 					"metadata": {
 						"language": "sql"
 					},
@@ -508,7 +508,7 @@
 					"name": "Module 2.3"
 				},
 				"content": {
-					"query": "-- Generate database from Templates",
+					"query": "-- Generate From Template\n-- Manually\n-- 1) Create Database\n-- 2) Create Table from Data Lake. Make sure input folder points to an existing folder where the data is in\n-- 3) Create Custom. Make sure input folder points to an axisting FILE!!!! You cannot select a file >:-( ",
 					"metadata": {
 						"language": "sql"
 					},
@@ -646,6 +646,26 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 7')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [Id]\n,[FirstName]\n,[LastName]\n,[CompanyName]\n,[Address]\n FROM [SalesLake].[dbo].[Customers]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesLake",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SalesLake')]",
 			"type": "Microsoft.Synapse/workspaces/databases",
 			"apiVersion": "2019-06-01-preview",
@@ -701,8 +721,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "long"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "FirstName",
@@ -715,8 +734,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "string"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "LastName",
@@ -729,8 +747,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "string"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "CompanyName",
@@ -743,8 +760,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "string"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "Address",
@@ -757,8 +773,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "string"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									}
 								],
 								"Format": {
@@ -826,8 +841,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "integer"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "Quantity",
@@ -838,8 +852,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "integer"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "TotalPrice",
@@ -850,8 +863,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "double"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "OrderDate",
@@ -863,8 +875,7 @@
 												"TimestampFormat": "YYYY-MM-DD HH:MM:SS.fffffffff",
 												"HIVE_TYPE_STRING": "timestamp"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "ProductId",
@@ -875,8 +886,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "integer"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "CustomerId",
@@ -887,8 +897,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "integer"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									}
 								],
 								"Format": {
@@ -956,8 +965,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "integer"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "BrandName",
@@ -969,8 +977,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "string"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "Name",
@@ -982,8 +989,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "string"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									},
 									{
 										"Name": "Price",
@@ -994,8 +1000,7 @@
 											"Properties": {
 												"HIVE_TYPE_STRING": "double"
 											}
-										},
-										"DeltaFormatInvalidMessages": []
+										}
 									}
 								],
 								"Format": {
@@ -1033,6 +1038,41 @@
 							"Retention": 0,
 							"Temporary": false,
 							"IsRewriteEnabled": false
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Test')]",
+			"type": "Microsoft.Synapse/workspaces/databases",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"Ddls": [
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "Test",
+							"EntityType": "DATABASE",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"Properties": {
+								"IsSyMSCDMDatabase": true
+							},
+							"Source": {
+								"Provider": "ADLS",
+								"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv",
+								"Properties": {
+									"FormatType": "csv",
+									"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage"
+								}
+							}
 						},
 						"Source": {
 							"Type": "SPARK"
