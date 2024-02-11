@@ -4,7 +4,7 @@
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"bigDataPool": {
-			"referenceName": "pssnapspark",
+			"referenceName": "Spark1",
 			"type": "BigDataPoolReference"
 		},
 		"sessionProperties": {
@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "a8a86407-a83e-4041-8937-a453e207c5f1"
+				"spark.autotune.trackingId": "ecf38abe-e848-42a3-a9fc-fbe22464c96a"
 			}
 		},
 		"metadata": {
@@ -31,16 +31,16 @@
 				"name": "python"
 			},
 			"a365ComputeOptions": {
-				"id": "/subscriptions/b61c14ee-0646-4d4a-857a-7e76d6a5065c/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/ps-snap/bigDataPools/pssnapspark",
-				"name": "pssnapspark",
+				"id": "/subscriptions/b61c14ee-0646-4d4a-857a-7e76d6a5065c/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/ps-snap/bigDataPools/Spark1",
+				"name": "Spark1",
 				"type": "Spark",
-				"endpoint": "https://ps-snap.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/pssnapspark",
+				"endpoint": "https://ps-snap.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Spark1",
 				"auth": {
 					"type": "AAD",
 					"authResource": "https://dev.azuresynapse.net"
 				},
 				"sparkVersion": "3.3",
-				"nodeCount": 3,
+				"nodeCount": 10,
 				"cores": 4,
 				"memory": 28,
 				"automaticScaleJobs": false
@@ -59,7 +59,7 @@
 					"%%sql\r\n",
 					"SELECT * FROM `DBSales`.`Products`"
 				],
-				"execution_count": 2
+				"execution_count": 5
 			}
 		]
 	}
