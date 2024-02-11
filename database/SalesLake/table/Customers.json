@@ -16,11 +16,11 @@
 				{
 					"Name": "Id",
 					"OriginDataTypeName": {
-						"TypeName": "long",
-						"IsNullable": false,
+						"TypeName": "integer",
 						"IsComplexType": false,
+						"IsNullable": false,
 						"Properties": {
-							"HIVE_TYPE_STRING": "long"
+							"HIVE_TYPE_STRING": "integer"
 						}
 					},
 					"DeltaFormatInvalidMessages": []
@@ -30,8 +30,8 @@
 					"Description": "",
 					"OriginDataTypeName": {
 						"TypeName": "string",
-						"IsNullable": false,
 						"IsComplexType": false,
+						"IsNullable": false,
 						"Length": 256,
 						"Properties": {
 							"HIVE_TYPE_STRING": "string"
@@ -44,8 +44,8 @@
 					"Description": "",
 					"OriginDataTypeName": {
 						"TypeName": "string",
-						"IsNullable": false,
 						"IsComplexType": false,
+						"IsNullable": false,
 						"Length": 256,
 						"Properties": {
 							"HIVE_TYPE_STRING": "string"
@@ -58,8 +58,8 @@
 					"Description": "",
 					"OriginDataTypeName": {
 						"TypeName": "string",
-						"IsNullable": false,
 						"IsComplexType": false,
+						"IsNullable": false,
 						"Length": 256,
 						"Properties": {
 							"HIVE_TYPE_STRING": "string"
@@ -72,8 +72,8 @@
 					"Description": "",
 					"OriginDataTypeName": {
 						"TypeName": "string",
-						"IsNullable": false,
 						"IsComplexType": false,
+						"IsNullable": false,
 						"Length": 4000,
 						"Properties": {
 							"HIVE_TYPE_STRING": "string"
@@ -112,8 +112,7 @@
 			"Description": "",
 			"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
 			"PrimaryKeys": "Id",
-			"spark.sql.sources.provider": "parquet",
-			"sql:IsAppendOnly": false
+			"spark.sql.sources.provider": "parquet"
 		},
 		"Retention": 0,
 		"Temporary": false,
