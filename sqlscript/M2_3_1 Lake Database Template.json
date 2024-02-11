@@ -1,0 +1,20 @@
+{
+	"name": "M2_3_1 Lake Database Template",
+	"properties": {
+		"folder": {
+			"name": "Module 2.3"
+		},
+		"content": {
+			"query": "-- Generate database from Templates",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
