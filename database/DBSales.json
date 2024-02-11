@@ -1,0 +1,22 @@
+{
+	"name": "DBSales",
+	"properties": {
+		"Name": "DBSales",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://files@patsynapselake.dfs.core.windows.net/DBSales",
+			"Properties": {
+				"FormatType": "parquet",
+				"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
