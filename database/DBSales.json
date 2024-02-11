@@ -11,7 +11,7 @@
 		},
 		"Source": {
 			"Provider": "ADLS",
-			"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv",
+			"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100",
 			"Properties": {
 				"FormatType": "csv",
 				"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage"
