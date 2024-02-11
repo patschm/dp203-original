@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 7",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [Id]\n,[FirstName]\n,[LastName]\n,[CompanyName]\n,[Address]\n FROM [SalesLake].[dbo].[Customers]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SalesLake",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
