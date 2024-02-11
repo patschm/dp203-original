@@ -1,0 +1,23 @@
+{
+	"name": "relationship-nwopdfftke",
+	"properties": {
+		"Name": "relationship-nwopdfftke",
+		"EntityType": "RELATIONSHIP",
+		"Namespace": {
+			"DatabaseName": "DBSales"
+		},
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"FromTableName": "Products",
+		"ToTableName": "Orders",
+		"ColumnRelationshipInformations": [
+			{
+				"FromColumnName": "Id",
+				"ToColumnName": "ProductId"
+			}
+		],
+		"RelationshipType": 0
+	},
+	"type": "RELATIONSHIP"
+}
