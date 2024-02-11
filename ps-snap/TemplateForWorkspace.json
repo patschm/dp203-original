@@ -1,0 +1,1142 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "ps-snap"
+		},
+		"SalesDB_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SalesDB'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=ps-snap-ondemand.sql.azuresynapse.net;Initial Catalog=SalesDB"
+		},
+		"ps-snap-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ps-snap-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ps-snap.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"ps-snap-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://patsynapselake.dfs.core.windows.net"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Spark1')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Mod22UseStoredProcedure')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Delete Lake files",
+						"type": "Delete",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "saleslake",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"logStorageSettings": {
+								"linkedServiceName": {
+									"referenceName": "ps-snap-WorkspaceDefaultStorage",
+									"type": "LinkedServiceReference"
+								},
+								"path": "pipelog"
+							},
+							"enableLogging": true,
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "Create Sales Table",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Delete Lake files",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[dbo].[sp_create_sales]",
+							"storedProcedureParameters": {
+								"amount": {
+									"value": "100",
+									"type": "Int32"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "SalesDB",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-02-11T10:37:57Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/saleslake')]",
+				"[concat(variables('workspaceId'), '/linkedServices/SalesDB')]",
+				"[concat(variables('workspaceId'), '/linkedServices/ps-snap-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/saleslake')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ps-snap-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "sales100/parquet_orders",
+						"fileSystem": "files"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ps-snap-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SalesDB')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('SalesDB_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ps-snap-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('ps-snap-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ps-snap-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ps-snap-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/IntegrationRuntime1')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "West Europe",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false,
+							"customProperties": []
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_1 Cleanup')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.1"
+				},
+				"content": {
+					"query": "USE SalesDB\nGO;\n\nDROP EXTERNAL TABLE Products\nDROP EXTERNAL FILE FORMAT FormatCsv\nDROP EXTERNAL DATA SOURCE csv\nDROP EXTERNAL DATA SOURCE csv2\nDROP DATABASE SCOPED CREDENTIAL sasToken",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesDB",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_1_1 OPENROWSET CSV')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.1"
+				},
+				"content": {
+					"query": "-- OPENROWSET runs in the default master database. There are no objects like tables involved.\n-- Simple\nSELECT TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://patsynapselake.dfs.core.windows.net/files/sales100/csv/customers.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS [result]\n\n-- With Mapping\nSELECT TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://patsynapselake.dfs.core.windows.net/files/sales100/csv/customers.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) \nWITH (\n    Id INT,\n    FirstName VARCHAR(255) COLLATE Latin1_General_100_BIN2_UTF8,\n    LastName VARCHAR(255) COLLATE Latin1_General_100_BIN2_UTF8,\n    CompanyName VARCHAR(255) COLLATE Latin1_General_100_BIN2_UTF8,\n    StreetName VARCHAR(255) COLLATE Latin1_General_100_BIN2_UTF8,\n    Number INT,\n    City VARCHAR(255) COLLATE Latin1_General_100_BIN2_UTF8,\n    Region VARCHAR(255) COLLATE Latin1_General_100_BIN2_UTF8,\n    Country VARCHAR(255) COLLATE Latin1_General_100_BIN2_UTF8\n) AS [result]\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_1_2 OPENROWSET Json')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.1"
+				},
+				"content": {
+					"query": "-- Simple\nSELECT doc\nFROM\n    OPENROWSET(\n        BULK 'https://patsynapselake.dfs.core.windows.net/files/sales100/json/customers/*.json',\n        FORMAT = 'CSV',\n        FIELDQUOTE = '0x0b',\n        FIELDTERMINATOR ='0x0b',\n        ROWTERMINATOR = '0x0b'\n    ) WITH (\n        doc VARCHAR(MAX)\n    ) AS [result]\n\n\n-- With Schema\nSELECT \n   JSON_VALUE(doc, '$.Id') AS Id,\n   JSON_VALUE(doc, '$.FirstName') AS FirstName,\n   JSON_VALUE(doc, '$.LastName') AS LastName,\n   JSON_VALUE(doc, '$.CompanyName') AS CompanyName,\n   JSON_VALUE(doc, '$.Address.StreetName') AS StreetName,\n   JSON_VALUE(doc, '$.Address.Number') AS Number,\n   JSON_VALUE(doc, '$.Address.City') AS City,\n   JSON_VALUE(doc, '$.Address.Region') AS Region,\n   JSON_VALUE(doc, '$.Address.Country') AS Country\nFROM\n    OPENROWSET(\n        BULK 'https://patsynapselake.dfs.core.windows.net/files/sales100/json/customers/*.json',\n        FORMAT = 'CSV',\n        FIELDQUOTE = '0x0b',\n        FIELDTERMINATOR ='0x0b',\n        ROWTERMINATOR = '0x0b'\n    ) \n    WITH (\n        doc VARCHAR(MAX)\n    ) AS [result]\n\n\n\n\n    \n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_1_3 OPENROWSET Parquet')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.1"
+				},
+				"content": {
+					"query": "-- Simple\nSELECT\n    *\nFROM\n    OPENROWSET(\n        BULK 'https://patsynapselake.dfs.core.windows.net/files/sales100/parquet/customers.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n\n-- With Fields\nSELECT\n    Id,\n    FirstName,\n    LastName,\n    CompanyName,\n    JSON_VALUE(Address, '$.StreetName') AS StreetName,\n    JSON_VALUE(Address, '$.Number') AS Number,\n    JSON_VALUE(Address, '$.City') AS City,\n    JSON_VALUE(Address, '$.Region') AS Region,\n    JSON_VALUE(Address, '$.Country') AS Country\nFROM\n    OPENROWSET(\n        BULK 'https://patsynapselake.dfs.core.windows.net/files/sales100/parquet/customers.parquet',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_1_4 External Data Source')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.1"
+				},
+				"content": {
+					"query": "CREATE DATABASE SalesDB COLLATE Latin1_General_100_BIN2_UTF8\n\nUSE SalesDB\n\nCREATE EXTERNAL DATA SOURCE csv\nWITH (\n    LOCATION='https://patsynapselake.dfs.core.windows.net/files/sales100/csv/'\n)\n\n-- Easier to query now\nSELECT * \nFROM OPENROWSET (\n    BULK 'customers.csv',\n    DATA_SOURCE = 'csv',\n    FORMAT = 'csv',\n    HEADER_ROW = TRUE,\n    PARSER_VERSION = '2.0'\n) as customers\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesDB",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_1_5 External Database')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.1"
+				},
+				"content": {
+					"query": "CREATE DATABASE SalesDB COLLATE Latin1_General_100_BIN2_UTF8\n\nUSE SalesDB\n\nCREATE EXTERNAL DATA SOURCE csv\nWITH (\n    LOCATION='https://patsynapselake.dfs.core.windows.net/files/sales100/csv/'\n)\n\n-- Easier to query now\nSELECT * \nFROM OPENROWSET (\n    BULK 'customers.csv',\n    DATA_SOURCE = 'csv',\n    FORMAT = 'csv',\n    HEADER_ROW = TRUE,\n    PARSER_VERSION = '2.0'\n) as customers\n\n-- With Credentials\n--DROP EXTERNAL DATA SOURCE csv2\n--DROP DATABASE SCOPED CREDENTIAL sasToken\n\nCREATE DATABASE SCOPED CREDENTIAL sasToken\nWITH\n    IDENTITY='SHARED ACCESS SIGNATURE',  \n    SECRET = 'sp=r&st=2024-02-10T10:02:59Z&se=2024-03-02T18:02:59Z&spr=https&sv=2022-11-02&sr=d&sig=IuFXYZKkEVAu6Jta9wuq%2Fy7iC5WXynm3iODTcUv9zkM%3D&sdd=2';\nGO\n\nCREATE EXTERNAL DATA SOURCE csv2\nWITH (\n    LOCATION='https://patsynapselake.dfs.core.windows.net/files/sales100/csv/',\n    CREDENTIAL=sasToken\n)\nGO;\n\nSELECT * \nFROM OPENROWSET (\n    BULK 'products.csv',\n    DATA_SOURCE = 'csv2',\n    FORMAT = 'csv',\n    HEADER_ROW = TRUE,\n    PARSER_VERSION = '2.0'\n) as products\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesDB",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_1_6 External Table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.1"
+				},
+				"content": {
+					"query": "USE SalesDB;\nGO;\n\nDROP EXTERNAL TABLE Products\nDROP EXTERNAL FILE FORMAT FormatCsv\n\nCREATE EXTERNAL FILE FORMAT FormatCsv\nWITH (\n FORMAT_TYPE = DELIMITEDTEXT,\n FORMAT_OPTIONS (\n    FIELD_TERMINATOR = ',',\n    STRING_DELIMITER = '\"',\n    FIRST_ROW=2 -- Omit header row (1).\n )   \n);\n\n-- And now create a table\n\nCREATE EXTERNAL TABLE Products\n(\n    Id INT,\n    BrandName VARCHAR(255),\n    Name VARCHAR(255),\n    Price DECIMAL(14, 10)\n)\nWITH\n(\n    LOCATION='products.csv',\n    DATA_SOURCE=csv,\n    FILE_FORMAT=FormatCsv\n)\n\n-- And do your queries\nSELECT * FROM Products",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesDB",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_2 Cleanup')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.2"
+				},
+				"content": {
+					"query": "USE SalesDB\nGO;\n\nDROP EXTERNAL TABLE SalesOrders\nDROP EXTERNAL FILE FORMAT FormatParquet\nDROP EXTERNAL DATA SOURCE files\nDROP PROCEDURE IF EXISTS sp_create_sales\n\n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesDB",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_2_1 Transform CTAS')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.2"
+				},
+				"content": {
+					"query": "USE SalesDB\nGO;\n\nCREATE EXTERNAL DATA SOURCE files\nWITH(\n    LOCATION = 'https://patsynapselake.dfs.core.windows.net/files/sales100/'\n    --TYPE = HADOOP -- Dedicated SQL Pool. TYPE = BLOB_STORAGE is wrong in Synapse\n    --CREDENTIAL = cred\n)\n\nCREATE EXTERNAL FILE FORMAT FormatParquet\nWITH (\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\n\nCREATE EXTERNAL TABLE SalesOrders\nWITH\n(\n    LOCATION = 'parquet_orders/orders.parquet',\n    DATA_SOURCE = files,\n    FILE_FORMAT = FormatParquet\n)\nAS\nSELECT Quantity, TotalPrice, ProductId\nFROM OPENROWSET (\n    BULK 'csv/orders.csv',\n    DATA_SOURCE = 'files',\n    FORMAT = 'csv',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n) AS datasource\n---WHERE \n\nSELECT * FROM SalesOrders\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesDB",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_2_2 Stored Procedures')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.2"
+				},
+				"content": {
+					"query": "USE SalesDB\nGO;\n\nCREATE PROCEDURE sp_create_sales @amount INT\nAS\nBEGIN\n    IF EXISTS (SELECT * FROM sys.external_tables WHERE name='SalesOrders')\n        DROP EXTERNAL TABLE SalesOrders\n    \n    CREATE EXTERNAL TABLE SalesOrders\n    WITH\n    (\n        LOCATION = 'parquet_orders/orders.parquet', -- Make sure folders doesn't exist\n        DATA_SOURCE = files,\n        FILE_FORMAT = FormatParquet\n    )\n    AS\n    SELECT Quantity, TotalPrice, ProductId\n    FROM OPENROWSET (\n        BULK 'csv/orders.csv',\n        DATA_SOURCE = 'files',\n        FORMAT = 'csv',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS datasource\nEND\n\n--EXEC sp_create_sales 100\n\n-- Next see Integrate Mod22UseStoredProcedure\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "SalesDB",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_3_1 Lake Database Template')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.3"
+				},
+				"content": {
+					"query": "-- Generate database from Templates",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_3_2 Using Lake Database')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Module 2.3"
+				},
+				"content": {
+					"query": "",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/M2_3_4 Query')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "Spark1",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "ca45be8b-076d-46a0-b871-201b5c26ab67"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/b61c14ee-0646-4d4a-857a-7e76d6a5065c/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/ps-snap/bigDataPools/Spark1",
+						"name": "Spark1",
+						"type": "Spark",
+						"endpoint": "https://ps-snap.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/Spark1",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "sparksql"
+							}
+						},
+						"source": [
+							"%%sql\r\n",
+							"SELECT * FROM `DBSales`.`Products`"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DBSales')]",
+			"type": "Microsoft.Synapse/workspaces/databases",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"Ddls": [
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "DBSales",
+							"EntityType": "DATABASE",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"Properties": {
+								"IsSyMSCDMDatabase": true
+							},
+							"Source": {
+								"Provider": "ADLS",
+								"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100",
+								"Properties": {
+									"FormatType": "csv",
+									"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage"
+								}
+							}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "Customers",
+							"EntityType": "TABLE",
+							"Namespace": {
+								"DatabaseName": "DBSales"
+							},
+							"Description": "",
+							"TableType": "EXTERNAL",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"StorageDescriptor": {
+								"Columns": [
+									{
+										"Name": "Id",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "FirstName",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "LastName",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "CompanyName",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "StreetName",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Number",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "City",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Region",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Country",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									}
+								],
+								"Format": {
+									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
+									"FormatType": "csv",
+									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"Properties": {
+										"path": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv/customers.csv",
+										"delimiter": ",",
+										"multiLine": "false",
+										"firstRowAsHeader": "true",
+										"serialization.format": "1",
+										"FormatTypeSetToDatabaseDefault": false,
+										"header": "true"
+									}
+								},
+								"Source": {
+									"Provider": "ADLS",
+									"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv/customers.csv",
+									"Properties": {
+										"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage",
+										"LocationSetToDatabaseDefault": false
+									}
+								},
+								"Properties": {
+									"textinputformat.record.delimiter": ",",
+									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"derivedModelAttributeInfo": "{\"attributeReferences\":{}}"
+								},
+								"Compressed": false,
+								"IsStoredAsSubdirectories": false
+							},
+							"Properties": {
+								"Description": "",
+								"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
+								"PrimaryKeys": "",
+								"spark.sql.sources.provider": "csv"
+							},
+							"Retention": 0,
+							"Temporary": false,
+							"IsRewriteEnabled": false
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "Orders",
+							"EntityType": "TABLE",
+							"Namespace": {
+								"DatabaseName": "DBSales"
+							},
+							"Description": "",
+							"TableType": "EXTERNAL",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"StorageDescriptor": {
+								"Columns": [
+									{
+										"Name": "Id",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Quantity",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "TotalPrice",
+										"OriginDataTypeName": {
+											"TypeName": "double",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "double"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "OrderDate",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "ProductId",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "CustomerId",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									}
+								],
+								"Format": {
+									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
+									"FormatType": "csv",
+									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"Properties": {
+										"path": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv/orders.csv",
+										"delimiter": ",",
+										"multiLine": "false",
+										"firstRowAsHeader": "true",
+										"serialization.format": "1",
+										"FormatTypeSetToDatabaseDefault": false,
+										"header": "true"
+									}
+								},
+								"Source": {
+									"Provider": "ADLS",
+									"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv/orders.csv",
+									"Properties": {
+										"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage",
+										"LocationSetToDatabaseDefault": false
+									}
+								},
+								"Properties": {
+									"textinputformat.record.delimiter": ",",
+									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"derivedModelAttributeInfo": "{\"attributeReferences\":{}}"
+								},
+								"Compressed": false,
+								"IsStoredAsSubdirectories": false
+							},
+							"Properties": {
+								"Description": "",
+								"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
+								"PrimaryKeys": "",
+								"spark.sql.sources.provider": "csv"
+							},
+							"Retention": 0,
+							"Temporary": false,
+							"IsRewriteEnabled": false
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "Products",
+							"EntityType": "TABLE",
+							"Namespace": {
+								"DatabaseName": "DBSales"
+							},
+							"Description": "",
+							"TableType": "EXTERNAL",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"StorageDescriptor": {
+								"Columns": [
+									{
+										"Name": "Id",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "BrandName",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Name",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Price",
+										"OriginDataTypeName": {
+											"TypeName": "double",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "double"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									}
+								],
+								"Format": {
+									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
+									"FormatType": "csv",
+									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"Properties": {
+										"path": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv/products.csv",
+										"delimiter": ",",
+										"multiLine": "false",
+										"firstRowAsHeader": "true",
+										"serialization.format": "1",
+										"FormatTypeSetToDatabaseDefault": false,
+										"header": "true"
+									}
+								},
+								"Source": {
+									"Provider": "ADLS",
+									"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/csv/products.csv",
+									"Properties": {
+										"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage",
+										"LocationSetToDatabaseDefault": false
+									}
+								},
+								"Properties": {
+									"textinputformat.record.delimiter": ",",
+									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"derivedModelAttributeInfo": "{\"attributeReferences\":{}}"
+								},
+								"Compressed": false,
+								"IsStoredAsSubdirectories": false
+							},
+							"Properties": {
+								"Description": "",
+								"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
+								"PrimaryKeys": "",
+								"spark.sql.sources.provider": "csv"
+							},
+							"Retention": 0,
+							"Temporary": false,
+							"IsRewriteEnabled": false
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "relationship-nwopdfftke",
+							"EntityType": "RELATIONSHIP",
+							"Namespace": {
+								"DatabaseName": "DBSales"
+							},
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"FromTableName": "Products",
+							"ToTableName": "Orders",
+							"ColumnRelationshipInformations": [
+								{
+									"FromColumnName": "Id",
+									"ToColumnName": "ProductId"
+								}
+							],
+							"RelationshipType": 0,
+							"Properties": {}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "relationship-zcnchgdybf",
+							"EntityType": "RELATIONSHIP",
+							"Namespace": {
+								"DatabaseName": "DBSales"
+							},
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"FromTableName": "Customers",
+							"ToTableName": "Orders",
+							"ColumnRelationshipInformations": [
+								{
+									"FromColumnName": "Id",
+									"ToColumnName": "CustomerId"
+								}
+							],
+							"RelationshipType": 0,
+							"Properties": {}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Spark1')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 3,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.3",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westeurope"
+		}
+	]
+}
