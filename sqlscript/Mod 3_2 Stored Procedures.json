@@ -1,0 +1,20 @@
+{
+	"name": "Mod 3_2 Stored Procedures",
+	"properties": {
+		"folder": {
+			"name": "Module 2.2"
+		},
+		"content": {
+			"query": "USE SalesDB\nGO;\n\nCREATE PROCEDURE sp_create_sales @amount INT\nAS\nBEGIN\n    IF EXISTS (SELECT * FROM sys.external_tables WHERE name='SalesOrders')\n        DROP EXTERNAL TABLE SalesOrders\n    \n    CREATE EXTERNAL TABLE SalesOrders\n    WITH\n    (\n        LOCATION = 'parquet_orders/orders.parquet', -- Make sure folders doesn't exist\n        DATA_SOURCE = files,\n        FILE_FORMAT = FormatParquet\n    )\n    AS\n    SELECT Quantity, TotalPrice, ProductId\n    FROM OPENROWSET (\n        BULK 'csv/orders.csv',\n        DATA_SOURCE = 'files',\n        FORMAT = 'csv',\n        PARSER_VERSION = '2.0',\n        HEADER_ROW = TRUE\n    ) AS datasource\nEND\n\n--EXEC sp_create_sales 100\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SalesDB",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

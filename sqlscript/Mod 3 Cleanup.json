@@ -1,0 +1,20 @@
+{
+	"name": "Mod 3 Cleanup",
+	"properties": {
+		"folder": {
+			"name": "Module 2.2"
+		},
+		"content": {
+			"query": "USE SalesDB\nGO;\n\nDROP EXTERNAL TABLE SalesOrders\nDROP EXTERNAL FILE FORMAT FormatParquet\nDROP EXTERNAL DATA SOURCE files\nDROP PROCEDURE IF EXISTS sp_create_sales\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SalesDB",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

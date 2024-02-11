@@ -1,0 +1,20 @@
+{
+	"name": "Mod 2_4 External Data Source",
+	"properties": {
+		"folder": {
+			"name": "Module 2.1"
+		},
+		"content": {
+			"query": "CREATE DATABASE SalesDB COLLATE Latin1_General_100_BIN2_UTF8\n\nUSE SalesDB\n\nCREATE EXTERNAL DATA SOURCE csv\nWITH (\n    LOCATION='https://patsynapselake.dfs.core.windows.net/files/sales100/csv/'\n)\n\n-- Easier to query now\nSELECT * \nFROM OPENROWSET (\n    BULK 'customers.csv',\n    DATA_SOURCE = 'csv',\n    FORMAT = 'csv',\n    HEADER_ROW = TRUE,\n    PARSER_VERSION = '2.0'\n) as customers\n\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SalesDB",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

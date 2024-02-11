@@ -1,0 +1,20 @@
+{
+	"name": "Mod 2_6 External Table",
+	"properties": {
+		"folder": {
+			"name": "Module 2.1"
+		},
+		"content": {
+			"query": "USE SalesDB;\nGO;\n\nDROP EXTERNAL TABLE Products\nDROP EXTERNAL FILE FORMAT FormatCsv\n\nCREATE EXTERNAL FILE FORMAT FormatCsv\nWITH (\n FORMAT_TYPE = DELIMITEDTEXT,\n FORMAT_OPTIONS (\n    FIELD_TERMINATOR = ',',\n    STRING_DELIMITER = '\"',\n    FIRST_ROW=2 -- Omit header row (1).\n )   \n);\n\n-- And now create a table\n\nCREATE EXTERNAL TABLE Products\n(\n    Id INT,\n    BrandName VARCHAR(255),\n    Name VARCHAR(255),\n    Price DECIMAL(14, 10)\n)\nWITH\n(\n    LOCATION='products.csv',\n    DATA_SOURCE=csv,\n    FILE_FORMAT=FormatCsv\n)\n\n-- And do your queries\nSELECT * FROM Products",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "SalesDB",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
