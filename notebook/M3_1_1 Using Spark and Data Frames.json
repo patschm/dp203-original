@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "7bf154fb-a48c-45b0-876b-2b12c25e9f47"
+				"spark.autotune.trackingId": "32b1822b-9813-4eaa-945c-5a230be068b5"
 			}
 		},
 		"metadata": {
@@ -326,10 +326,95 @@
 					"#display(df)\r\n",
 					"\r\n",
 					"#grouping\r\n",
-					"df = df.select(\"TotalPrice\", concat(df.BrandName, lit(\" \"), df.Name).alias(\"Prod\")).groupBy(\"Prod\").sum(\"TotalPrice\")\r\n",
-					"display(df)"
+					"df = df.select(\"TotalPrice\", concat(df.BrandName, lit(\" \"), df.Name).alias(\"Product\")) \\\r\n",
+					"    .groupBy(\"Product\").agg(sum(\"TotalPrice\").alias(\"Total\"))\r\n",
+					"#display(df)\r\n",
+					"\r\n",
+					"#ordering\r\n",
+					"df = df.orderBy(col(\"Total\").desc())\r\n",
+					"display(df)\r\n",
+					""
 				],
-				"execution_count": 62
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Create a view"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
+					"dfproducts = spark.read.load(lakepath + \"parquet/products.parquet\", format=\"parquet\")\r\n",
+					"df = df.select(\"Quantity\", \"TotalPrice\", \"OrderDate\", \"ProductId\")\r\n",
+					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
+					"\r\n",
+					"df.createOrReplaceTempView(\"orders\")\r\n",
+					"\r\n",
+					"order_df = spark.sql(\"SELECT * FROM orders\")\r\n",
+					"\r\n",
+					"display(order_df.limit(10))"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"### Use View in SQL"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\r\n",
+					"SELECT concat(BrandName, \" \", Name) As Product, SUM(TotalPrice) As Total FROM orders\r\n",
+					"GROUP BY Product\r\n",
+					"ORDER BY Total DESC"
+				],
+				"execution_count": 74
 			}
 		]
 	}
