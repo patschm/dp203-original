@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "8422a6d5-7f1a-4bfd-93cc-2940f0a75758"
+				"spark.autotune.trackingId": "89de2103-14c6-44ef-abdb-245fa17eaf55"
 			}
 		},
 		"metadata": {
@@ -55,9 +55,10 @@
 				"cell_type": "code",
 				"source": [
 					"global lakepath\r\n",
+					"\r\n",
 					"lakepath = 'abfss://files@patsynapselake.dfs.core.windows.net/sales100/'"
 				],
-				"execution_count": 124
+				"execution_count": 1
 			},
 			{
 				"cell_type": "code",
@@ -74,10 +75,13 @@
 					"collapsed": false
 				},
 				"source": [
+					"from pyspark.sql.functions import *\r\n",
 					"from matplotlib import pyplot\r\n",
 					"\r\n",
 					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
 					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
+					"dfproducts = spark.read.load(lakepath + \"parquet/products.parquet\", format=\"parquet\")\r\n",
+					"\r\n",
 					"df = df.select(\"Quantity\", \"TotalPrice\", \"ProductId\")\r\n",
 					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
 					"df = df.select(\"TotalPrice\", concat(df.BrandName, lit(\" \"), df.Name).alias(\"Product\")) \\\r\n",
@@ -104,7 +108,20 @@
 					"\r\n",
 					""
 				],
-				"execution_count": null
+				"execution_count": 4
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Simple Grapgh"
+				]
 			},
 			{
 				"cell_type": "code",
@@ -120,6 +137,7 @@
 					}
 				},
 				"source": [
+					"from pyspark.sql.functions import *\r\n",
 					"from matplotlib import pyplot\r\n",
 					"\r\n",
 					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
@@ -149,6 +167,72 @@
 					"pyplot.show()"
 				],
 				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## More complex graph"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from pyspark.sql.functions import *\r\n",
+					"from matplotlib import pyplot\r\n",
+					"\r\n",
+					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
+					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
+					"dfproducts = spark.read.load(lakepath + \"parquet/products.parquet\", format=\"parquet\")\r\n",
+					"\r\n",
+					"df = df.select(\"Quantity\", \"TotalPrice\", \"ProductId\")\r\n",
+					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
+					"\r\n",
+					"df1 = df.select(\"TotalPrice\", col(\"BrandName\").alias(\"Brand\")) \\\r\n",
+					"    .groupBy(\"Brand\").agg(sum(\"TotalPrice\").alias(\"Total\"))\r\n",
+					"df1 = df1.orderBy(col(\"Total\").desc())\r\n",
+					"\r\n",
+					"\r\n",
+					"df2 = df.select(\"Quantity\", col(\"BrandName\").alias(\"Brand\")) \\\r\n",
+					"    .groupBy(\"Brand\").agg(sum(\"Quantity\").alias(\"Quantity\"))\r\n",
+					"df2 = df2.orderBy(col(\"Quantity\").desc())\r\n",
+					"\r\n",
+					"# First create a pandas frame\r\n",
+					"df1 = df1.toPandas()\r\n",
+					"df2 = df2.toPandas()\r\n",
+					"\r\n",
+					"\r\n",
+					"# Clear plot area\r\n",
+					"pyplot.clf()\r\n",
+					"\r\n",
+					"fig, figs = pyplot.subplots(1, 2)\r\n",
+					"figs[0].barh(y=df1.Brand, width=df1.Total, color=\"green\")\r\n",
+					"figs[0].set_title(\"Total sales by brand\")\r\n",
+					"\r\n",
+					"figs[1].pie(df2.Quantity, labels=df2.Brand, autopct=\"%1d\")\r\n",
+					"figs[1].set_title(\"Amounts by Brand\")\r\n",
+					"\r\n",
+					"\r\n",
+					"pyplot.show()"
+				],
+				"execution_count": 40
 			}
 		]
 	}
