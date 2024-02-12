@@ -13,7 +13,7 @@
 			"Provider": "ADLS",
 			"Location": "abfss://files@patsynapselake.dfs.core.windows.net/TestData",
 			"Properties": {
-				"FormatType": "csv",
+				"FormatType": "parquet",
 				"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage"
 			}
 		}
