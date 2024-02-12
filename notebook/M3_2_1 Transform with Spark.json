@@ -1,5 +1,5 @@
 {
-	"name": "M3_2_2 Transform with Spark",
+	"name": "M3_2_1 Transform with Spark",
 	"properties": {
 		"folder": {
 			"name": "Module 3.2"
@@ -16,7 +16,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "6105eccd-889b-44ed-a067-cb5731dd0083"
+				"spark.autotune.trackingId": "c2710621-72ae-4307-88be-09a68f0ba3fc"
 			}
 		},
 		"metadata": {
