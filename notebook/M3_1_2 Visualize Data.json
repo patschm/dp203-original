@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "89de2103-14c6-44ef-abdb-245fa17eaf55"
+				"spark.autotune.trackingId": "130b2b80-1a38-4947-81e1-186894d239cf"
 			}
 		},
 		"metadata": {
@@ -222,8 +222,9 @@
 					"# Clear plot area\r\n",
 					"pyplot.clf()\r\n",
 					"\r\n",
-					"fig, figs = pyplot.subplots(1, 2)\r\n",
-					"figs[0].barh(y=df1.Brand, width=df1.Total, color=\"green\")\r\n",
+					"fig, figs = pyplot.subplots(1, 2, figsize=(10,4))\r\n",
+					"pyplot.title(\"Sales Insights\")\r\n",
+					"figs[0].barh(y=df1.Brand, width=df1.Total, color=\"red\")\r\n",
 					"figs[0].set_title(\"Total sales by brand\")\r\n",
 					"\r\n",
 					"figs[1].pie(df2.Quantity, labels=df2.Brand, autopct=\"%1d\")\r\n",
@@ -232,7 +233,7 @@
 					"\r\n",
 					"pyplot.show()"
 				],
-				"execution_count": 40
+				"execution_count": 46
 			}
 		]
 	}
