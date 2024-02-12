@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "05bd061e-5f58-4874-b52f-457909612741"
+				"spark.autotune.trackingId": "8422a6d5-7f1a-4bfd-93cc-2940f0a75758"
 			}
 		},
 		"metadata": {
@@ -57,7 +57,7 @@
 					"global lakepath\r\n",
 					"lakepath = 'abfss://files@patsynapselake.dfs.core.windows.net/sales100/'"
 				],
-				"execution_count": 122
+				"execution_count": 124
 			},
 			{
 				"cell_type": "code",
