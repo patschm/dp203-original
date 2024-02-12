@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "ee5b0cc7-48a7-46e4-b031-db18110b797c"
+				"spark.autotune.trackingId": "3650fb69-a626-4bcc-91e1-cfc74ff1decd"
 			}
 		},
 		"metadata": {
@@ -80,7 +80,7 @@
 					"df = spark.sql(\"SELECT * FROM SalesLake.Products\")\r\n",
 					"df.show(10)"
 				],
-				"execution_count": 8
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -151,7 +151,31 @@
 					"%%sql\r\n",
 					"INSERT INTO SalesLake.Products (Id, BrandName, Name, Price) VALUES (1000, 'OPPO', 'BDB-100', 800)"
 				],
-				"execution_count": 11
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"microsoft": {
+						"language": "sparksql"
+					}
+				},
+				"source": [
+					"%%sql\r\n",
+					"INSERT INTO LakeHouse.People (Id, Name) VALUES (1, 'Hank')\r\n",
+					"\r\n",
+					"--SELECT * FROM `LakeHouse`.`People`"
+				],
+				"execution_count": 4
 			}
 		]
 	}
