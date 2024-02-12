@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "32a416b2-0de6-4dbe-8c40-3bce8c59a18d"
+				"spark.autotune.trackingId": "dbdcb992-8dc0-4648-869c-0ed12f24c0ae"
 			}
 		},
 		"metadata": {
@@ -92,7 +92,85 @@
 					}
 				},
 				"source": [
-					"## Or using sql..."
+					"Address field is in json format and gives an error. Have to look into that."
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df = spark.sql(\"SELECT Id, FirstName, LastName, CompanyName, Address FROM SalesLake.Customers\")\r\n",
+					"schema = \"StreetName STRING, Number INT, City STRING, Region STRING, Country STRING\"\r\n",
+					"parsed_df = df.withColumn(\"Address\", from_json(col(\"Address\"), schema))\r\n",
+					"parsed_df.printSchema()\r\n",
+					"parsed_df.show(truncate=True)"
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"This seems to work however..."
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"_data = [\r\n",
+					"    [0,\"Menno\",\"Wal\",\"Ven Online\",'{\"StreetName\":\"Emmakade\",\"Number\":92,\"City\":\"Breda\",\"Region\":\"Noord Brabant\",\"Country\":\"Nederland\"}'],\r\n",
+					"    [1,\"Xavier\",\"Jong\",\"Vries N.V.\",'{\"StreetName\":\"Basrijk\",\"Number\":85,\"City\":\"Utrecht\",\"Region\":\"Utrecht\",\"Country\":\"Nederland\"}']\r\n",
+					"]\r\n",
+					"# Columns for the data\r\n",
+					"_cols = ['Id', 'FirstName', 'LastName', 'CompanyName', 'Address']\r\n",
+					"# Lets create the raw Data Frame\r\n",
+					"df_raw = spark.createDataFrame(data = _data, schema = _cols)\r\n",
+					"\r\n",
+					"schema = \"StreetName STRING, Number INT, City STRING, Region STRING, Country STRING\"\r\n",
+					"df = df_raw.withColumn(\"Address\", from_json(col(\"Address\"), schema))\r\n",
+					"df.printSchema()\r\n",
+					"df.show(truncate=True)"
+				],
+				"execution_count": 127
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Using sql..."
 				]
 			},
 			{
@@ -178,6 +256,33 @@
 					"SELECT * FROM `LakeHouse`.`People`"
 				],
 				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"microsoft": {
+						"language": "sparksql"
+					},
+					"collapsed": false
+				},
+				"source": [
+					"%%sql\r\n",
+					"SELECT SUM(o.TotalPrice), p.Name\r\n",
+					"FROM SalesLake.Orders As o\r\n",
+					"JOIN SalesLake.Products As p ON p.Id = o.ProductId\r\n",
+					"JOIN SalesLake.Customers As c ON c.Id = o.CustomerId\r\n",
+					"GROUP BY p.Name"
+				],
+				"execution_count": 10
 			}
 		]
 	}
