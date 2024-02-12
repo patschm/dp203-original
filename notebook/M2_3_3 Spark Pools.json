@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3650fb69-a626-4bcc-91e1-cfc74ff1decd"
+				"spark.autotune.trackingId": "32a416b2-0de6-4dbe-8c40-3bce8c59a18d"
 			}
 		},
 		"metadata": {
@@ -128,7 +128,8 @@
 					}
 				},
 				"source": [
-					"## Even modifying data is possible"
+					"## Even modifying data is possible\r\n",
+					"Will only work if data is in parquet format and the external table is not assigned to a single file"
 				]
 			},
 			{
@@ -167,15 +168,16 @@
 					},
 					"microsoft": {
 						"language": "sparksql"
-					}
+					},
+					"collapsed": false
 				},
 				"source": [
 					"%%sql\r\n",
-					"INSERT INTO LakeHouse.People (Id, Name) VALUES (1, 'Hank')\r\n",
+					"--INSERT INTO LakeHouse.People (Id, Name) VALUES (2, 'Peter')\r\n",
 					"\r\n",
-					"--SELECT * FROM `LakeHouse`.`People`"
+					"SELECT * FROM `LakeHouse`.`People`"
 				],
-				"execution_count": 4
+				"execution_count": 7
 			}
 		]
 	}
