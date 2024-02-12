@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "130b2b80-1a38-4947-81e1-186894d239cf"
+				"spark.autotune.trackingId": "86e92dc3-4cff-49ad-8241-0f54c17d5d5d"
 			}
 		},
 		"metadata": {
@@ -59,6 +59,19 @@
 					"lakepath = 'abfss://files@patsynapselake.dfs.core.windows.net/sales100/'"
 				],
 				"execution_count": 1
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"## Simple Graph"
+				]
 			},
 			{
 				"cell_type": "code",
@@ -120,7 +133,7 @@
 					}
 				},
 				"source": [
-					"## Simple Grapgh"
+					"## Simple Graph"
 				]
 			},
 			{
