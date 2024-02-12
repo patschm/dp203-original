@@ -1,0 +1,155 @@
+{
+	"name": "M3_1_2 Visualize Data",
+	"properties": {
+		"folder": {
+			"name": "Module 3.1"
+		},
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "sparky",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "05bd061e-5f58-4874-b52f-457909612741"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/b61c14ee-0646-4d4a-857a-7e76d6a5065c/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/ps-snap/bigDataPools/sparky",
+				"name": "sparky",
+				"type": "Spark",
+				"endpoint": "https://ps-snap.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/sparky",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.3",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"global lakepath\r\n",
+					"lakepath = 'abfss://files@patsynapselake.dfs.core.windows.net/sales100/'"
+				],
+				"execution_count": 122
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"from matplotlib import pyplot\r\n",
+					"\r\n",
+					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
+					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
+					"df = df.select(\"Quantity\", \"TotalPrice\", \"ProductId\")\r\n",
+					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
+					"df = df.select(\"TotalPrice\", concat(df.BrandName, lit(\" \"), df.Name).alias(\"Product\")) \\\r\n",
+					"    .groupBy(\"Product\").agg(sum(\"TotalPrice\").alias(\"Total\"))\r\n",
+					"df = df.orderBy(col(\"Total\").desc())\r\n",
+					"\r\n",
+					"# First create a pandas frame\r\n",
+					"df = df.toPandas()\r\n",
+					"\r\n",
+					"# Clear plot area\r\n",
+					"pyplot.clf()\r\n",
+					"\r\n",
+					"fig = pyplot.figure(figsize=(12,8))\r\n",
+					"pyplot.title(\"Total sales by product\")\r\n",
+					"pyplot.ylabel(\"Products\")\r\n",
+					"pyplot.xlabel(\"Sales in $\")\r\n",
+					"pyplot.barh(y=df.Product, width=df.Total, color=\"green\")\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"pyplot.xticks(rotation=70)\r\n",
+					"\r\n",
+					"pyplot.show()\r\n",
+					"\r\n",
+					""
+				],
+				"execution_count": null
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"from matplotlib import pyplot\r\n",
+					"\r\n",
+					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
+					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
+					"df = df.select(\"Quantity\", \"TotalPrice\", \"ProductId\")\r\n",
+					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
+					"df = df.select(\"TotalPrice\", concat(df.BrandName, lit(\" \"), df.Name).alias(\"Product\")) \\\r\n",
+					"    .groupBy(\"Product\").agg(sum(\"TotalPrice\").alias(\"Total\"))\r\n",
+					"df = df.orderBy(col(\"Total\").desc())\r\n",
+					"\r\n",
+					"# First create a pandas frame\r\n",
+					"df = df.toPandas()\r\n",
+					"\r\n",
+					"# Clear plot area\r\n",
+					"pyplot.clf()\r\n",
+					"\r\n",
+					"fig = pyplot.figure(figsize=(12,8))\r\n",
+					"pyplot.title(\"Total sales by product\")\r\n",
+					"pyplot.ylabel(\"Products\")\r\n",
+					"pyplot.xlabel(\"Sales in $\")\r\n",
+					"pyplot.barh(y=df.Product, width=df.Total, color=\"green\")\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"pyplot.xticks(rotation=70)\r\n",
+					"\r\n",
+					"pyplot.show()"
+				],
+				"execution_count": null
+			}
+		]
+	}
+}
