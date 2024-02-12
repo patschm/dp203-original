@@ -1,0 +1,22 @@
+{
+	"name": "LakeHouse",
+	"properties": {
+		"Name": "LakeHouse",
+		"EntityType": "DATABASE",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://files@patsynapselake.dfs.core.windows.net/TestData",
+			"Properties": {
+				"FormatType": "csv",
+				"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
