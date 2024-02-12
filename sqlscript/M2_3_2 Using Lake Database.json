@@ -5,7 +5,7 @@
 			"name": "Module 2.3"
 		},
 		"content": {
-			"query": "SELECT o.TotalPrice, p.BrandName, p.Name, c.LastName\nFROM Orders As o\nJOIN Products As p ON p.Id = o.ProductId\nJOIN Customers As c ON c.Id = o.CustomerId\n\nSELECT SUM(o.TotalPrice), p.Name\nFROM Orders As o\nJOIN Products As p ON p.Id = o.ProductId\nJOIN Customers As c ON c.Id = o.CustomerId\nGROUP BY p.Name\n\nSELECT SUM(o.TotalPrice), CONCAT(c.FirstName, ' ', c.LastName)\nFROM Orders As o\nJOIN Products As p ON p.Id = o.ProductId\nJOIN Customers As c ON c.Id = o.CustomerId\nGROUP BY c.FirstName, c.LastName\n\n\n-- This cannot be done with EXTERNAL TABLES. Using Spark pool however you can\nINSERT INTO Products (Id, BrandName, Name, Price) VALUES (1000, 'OPPO', 'BDB-100', 800)\n",
+			"query": "SELECT * FROM Customers\n\nSELECT o.TotalPrice, p.BrandName, p.Name, c.LastName\nFROM Orders As o\nJOIN Products As p ON p.Id = o.ProductId\nJOIN Customers As c ON c.Id = o.CustomerId\n\nSELECT SUM(o.TotalPrice), p.Name\nFROM Orders As o\nJOIN Products As p ON p.Id = o.ProductId\nJOIN Customers As c ON c.Id = o.CustomerId\nGROUP BY p.Name\n\nSELECT SUM(o.TotalPrice), CONCAT(c.FirstName, ' ', c.LastName)\nFROM Orders As o\nJOIN Products As p ON p.Id = o.ProductId\nJOIN Customers As c ON c.Id = o.CustomerId\nGROUP BY c.FirstName, c.LastName\n\n\n-- This cannot be done with EXTERNAL TABLES. Using Spark pool however you can\nINSERT INTO Products (Id, BrandName, Name, Price) VALUES (1000, 'OPPO', 'BDB-100', 800)\n",
 			"metadata": {
 				"language": "sql"
 			},
