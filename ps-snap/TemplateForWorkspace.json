@@ -575,7 +575,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "3650fb69-a626-4bcc-91e1-cfc74ff1decd"
+						"spark.autotune.trackingId": "32a416b2-0de6-4dbe-8c40-3bce8c59a18d"
 					}
 				},
 				"metadata": {
@@ -687,7 +687,8 @@
 							}
 						},
 						"source": [
-							"## Even modifying data is possible"
+							"## Even modifying data is possible\r\n",
+							"Will only work if data is in parquet format and the external table is not assigned to a single file"
 						]
 					},
 					{
@@ -727,16 +728,17 @@
 							},
 							"microsoft": {
 								"language": "sparksql"
-							}
+							},
+							"collapsed": false
 						},
 						"source": [
 							"%%sql\r\n",
-							"INSERT INTO LakeHouse.People (Id, Name) VALUES (1, 'Hank')\r\n",
+							"--INSERT INTO LakeHouse.People (Id, Name) VALUES (2, 'Peter')\r\n",
 							"\r\n",
-							"--SELECT * FROM `LakeHouse`.`People`"
+							"SELECT * FROM `LakeHouse`.`People`"
 						],
 						"outputs": [],
-						"execution_count": 4
+						"execution_count": 7
 					}
 				]
 			},
@@ -832,6 +834,113 @@
 									"Properties": {
 										"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage",
 										"LocationSetToDatabaseDefault": true
+									}
+								},
+								"Properties": {
+									"textinputformat.record.delimiter": ",",
+									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"derivedModelAttributeInfo": "{\"attributeReferences\":{}}"
+								},
+								"Compressed": false,
+								"IsStoredAsSubdirectories": false
+							},
+							"Properties": {
+								"Description": "",
+								"DisplayFolderInfo": "{\"name\":\"Others\",\"colorCode\":\"\"}",
+								"PrimaryKeys": "",
+								"spark.sql.sources.provider": "parquet"
+							},
+							"Retention": 0,
+							"Temporary": false,
+							"IsRewriteEnabled": false
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "Products",
+							"EntityType": "TABLE",
+							"Namespace": {
+								"DatabaseName": "LakeHouse"
+							},
+							"Description": "",
+							"TableType": "EXTERNAL",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"StorageDescriptor": {
+								"Columns": [
+									{
+										"Name": "Id",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "BrandName",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Name",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 8000,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									},
+									{
+										"Name": "Price",
+										"OriginDataTypeName": {
+											"TypeName": "double",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "double"
+											}
+										},
+										"DeltaFormatInvalidMessages": []
+									}
+								],
+								"Format": {
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+									"Properties": {
+										"path": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/parquet/products.parquet",
+										"FormatTypeSetToDatabaseDefault": false
+									}
+								},
+								"Source": {
+									"Provider": "ADLS",
+									"Location": "abfss://files@patsynapselake.dfs.core.windows.net/sales100/parquet/products.parquet",
+									"Properties": {
+										"LinkedServiceName": "ps-snap-WorkspaceDefaultStorage",
+										"LocationSetToDatabaseDefault": false
 									}
 								},
 								"Properties": {
