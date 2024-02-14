@@ -1,0 +1,20 @@
+{
+	"name": "M4_1_3 Changing data",
+	"properties": {
+		"folder": {
+			"name": "Module 4.1"
+		},
+		"content": {
+			"query": "-- DO NOT EXECUTE. FOR EDUCATIONAL PURPOSES\n\n-- Build queries depending on the change frequency\n-- Type 0. Dimension cannot change\n-- Type 1. Changes in place. Old data is gone\n-- Type 2. Changes result in new dimension row. Usually requires an addidional column\n\n-- Type 1 & 2\n-- New Customers\nINSERT INTO Main.DimCustomers\nSELECT stg.*\nFROM Staging.DimCustomers AS stg\nWHERE NOT EXISTS\n    (SELECT * FROM Main.DimCustomers AS dim\n    WHERE dim.AlternateKey = stg.AlternateKey)\n\n-- Type 1 updates (name)\nUPDATE Main.DimCustomers\nSET CompanyName = stg.CompanyName\nFROM Staging.DimCustomers AS stg\nWHERE Main.DimCustomers.AlternateKey = stg.AlternateKey\n\n-- Type 2 updates (StreetName)\nINSERT INTO Main.DimCustomers\nSELECT stg.*\nFROM Staging.DimCustomers AS stg\nJOIN Main.DimCustomers AS dim\nON stg.AlternateKey = dim.AlternateKey\nAND stg.StreetName <> dim.StreetName;\n\n-- Alternatively\n\nMERGE Main.DimProducts AS tgt\n    USING (SELECT * FROM Staging.DimProducts) AS src\n    ON src.AlternateKey = tgt.AlternateKey\nWHEN MATCHED THEN\n    -- Type 1 updates\n    UPDATE SET\n        tgt.Name = src.Name,\n        tgt.Price = src.Price,\n        tgt.BrandId = src.BrandId\nWHEN NOT MATCHED THEN\n    -- New products\n    INSERT VALUES\n        (\n            src.AlternateKey,\n            src.Name,\n            src.BrandId,\n        );\n\n-- And rebuild the indexes for performance\n\nALTER INDEX ALL ON Main.DimProducts REBUILD\nALTER INDEX ALL ON Main.DimCustomers REBUILD\nALTER INDEX ALL ON Main.FactOrders REBUILD\n\n-- Check stats\nCREATE STATISTICS productcategory_stats\nON Main.FactOrders(OrderDateId);\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlpool",
+				"poolName": "sqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
