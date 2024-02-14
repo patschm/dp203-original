@@ -1,0 +1,20 @@
+{
+	"name": "M4_1_2 Load Data in the Warehous",
+	"properties": {
+		"folder": {
+			"name": "Module 4.1"
+		},
+		"content": {
+			"query": "COPY INTO Staging.DimProducts\n(AlternateKey 1, BrandName 2, Name 3, Price 4)\nFROM 'https://4dnsynapselake.dfs.core.windows.net/files/sales_small/csv/products*.csv'\nWITH\n(\n\tFILE_TYPE = 'CSV'\n\t,MAXERRORS = 0\n\t,FIRSTROW = 2\n\t,ERRORFILE = 'https://4dnsynapselake.dfs.core.windows.net/files/'\n    ,IDENTITY_INSERT = 'OFF'\n)\nGO;\n\nCOPY INTO Staging.DimCustomers\n(AlternateKey 1, FirstName 2, LastName 3, CompanyName 4, StreetName 5, Number 6, City 7, Region 8, Country 9)\nFROM 'https://4dnsynapselake.dfs.core.windows.net/files/sales_small/csv/customers_*.csv'\nWITH\n(\n\tFILE_TYPE = 'CSV'\n\t,MAXERRORS = 0\n\t,FIRSTROW = 2\n\t,ERRORFILE = 'https://4dnsynapselake.dfs.core.windows.net/files/'\n    ,IDENTITY_INSERT = 'OFF'\n)\nGO;\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlpool",
+				"poolName": "sqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
