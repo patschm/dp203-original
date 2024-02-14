@@ -1,10 +1,6 @@
 {
 	"name": "saleslake",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "ps-snap-WorkspaceDefaultStorage",
-			"type": "LinkedServiceReference"
-		},
 		"annotations": [],
 		"type": "Binary",
 		"typeProperties": {

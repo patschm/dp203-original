@@ -19,13 +19,6 @@
 						"referenceName": "saleslake",
 						"type": "DatasetReference"
 					},
-					"logStorageSettings": {
-						"linkedServiceName": {
-							"referenceName": "ps-snap-WorkspaceDefaultStorage",
-							"type": "LinkedServiceReference"
-						},
-						"path": "pipelog"
-					},
 					"enableLogging": true,
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",

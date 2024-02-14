@@ -5,7 +5,7 @@
 			"name": "Module 2.2"
 		},
 		"content": {
-			"query": "USE SalesDB\nGO;\n\nCREATE EXTERNAL DATA SOURCE files\nWITH(\n    LOCATION = 'https://patsynapselake.dfs.core.windows.net/files/sales100/'\n    --TYPE = HADOOP -- Dedicated SQL Pool. TYPE = BLOB_STORAGE is wrong in Synapse\n    --CREDENTIAL = cred\n)\n\nCREATE EXTERNAL FILE FORMAT FormatParquet\nWITH (\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\n\nCREATE EXTERNAL TABLE SalesOrders\nWITH\n(\n    LOCATION = 'parquet_orders/orders.parquet',\n    DATA_SOURCE = files,\n    FILE_FORMAT = FormatParquet\n)\nAS\nSELECT Quantity, TotalPrice, ProductId\nFROM OPENROWSET (\n    BULK 'csv/orders.csv',\n    DATA_SOURCE = 'files',\n    FORMAT = 'csv',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n) AS datasource\n---WHERE \n\nSELECT * FROM SalesOrders\n",
+			"query": "USE SalesDB\nGO;\n\nCREATE EXTERNAL DATA SOURCE files\nWITH(\n    LOCATION = 'https://4dnsynapselake.dfs.core.windows.net/files/sales_small/'\n    --TYPE = HADOOP -- Dedicated SQL Pool. TYPE = BLOB_STORAGE is wrong in Synapse\n    --CREDENTIAL = cred\n)\n\nCREATE EXTERNAL FILE FORMAT FormatParquet\nWITH (\n    FORMAT_TYPE = PARQUET,\n    DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'\n)\n\nCREATE EXTERNAL TABLE SalesOrders\nWITH\n(\n    LOCATION = 'parquet_orders/orders.parquet',\n    DATA_SOURCE = files,\n    FILE_FORMAT = FormatParquet\n)\nAS\nSELECT Quantity, TotalPrice, ProductId\nFROM OPENROWSET (\n    BULK 'csv/orders.csv',\n    DATA_SOURCE = 'files',\n    FORMAT = 'csv',\n    PARSER_VERSION = '2.0',\n    HEADER_ROW = TRUE\n) AS datasource\n---WHERE \n\nSELECT * FROM SalesOrders\n",
 			"metadata": {
 				"language": "sql"
 			},
