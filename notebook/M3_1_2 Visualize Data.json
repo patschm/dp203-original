@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "7736ffc7-e9da-407b-bd41-2c7705b1c600"
+				"spark.autotune.trackingId": "9230788b-bc92-4ee9-9ace-657136384e7e"
 			}
 		},
 		"metadata": {
@@ -91,9 +91,9 @@
 					"from pyspark.sql.functions import *\r\n",
 					"from matplotlib import pyplot\r\n",
 					"\r\n",
-					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
-					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
-					"dfproducts = spark.read.load(lakepath + \"parquet/products.parquet\", format=\"parquet\")\r\n",
+					"#spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
+					"df = spark.read.load(lakepath + \"parquet/orders*.parquet\", format=\"parquet\")\r\n",
+					"dfproducts = spark.read.load(lakepath + \"parquet/products*.parquet\", format=\"parquet\")\r\n",
 					"\r\n",
 					"df = df.select(\"Quantity\", \"TotalPrice\", \"ProductId\")\r\n",
 					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
@@ -102,7 +102,7 @@
 					"df = df.orderBy(col(\"Total\").desc())\r\n",
 					"\r\n",
 					"# First create a pandas frame\r\n",
-					"df = df.toPandas()\r\n",
+					"df = df.limit(10).toPandas()\r\n",
 					"\r\n",
 					"# Clear plot area\r\n",
 					"pyplot.clf()\r\n",
@@ -121,7 +121,7 @@
 					"\r\n",
 					""
 				],
-				"execution_count": 4
+				"execution_count": null
 			},
 			{
 				"cell_type": "markdown",
@@ -154,7 +154,7 @@
 					"from matplotlib import pyplot\r\n",
 					"\r\n",
 					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
-					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
+					"df = spark.read.load(lakepath + \"parquet/orders*.parquet\", format=\"parquet\")\r\n",
 					"df = df.select(\"Quantity\", \"TotalPrice\", \"ProductId\")\r\n",
 					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
 					"df = df.select(\"TotalPrice\", concat(df.BrandName, lit(\" \"), df.Name).alias(\"Product\")) \\\r\n",
@@ -162,7 +162,7 @@
 					"df = df.orderBy(col(\"Total\").desc())\r\n",
 					"\r\n",
 					"# First create a pandas frame\r\n",
-					"df = df.toPandas()\r\n",
+					"df = df.limit(10).toPandas()\r\n",
 					"\r\n",
 					"# Clear plot area\r\n",
 					"pyplot.clf()\r\n",
@@ -212,8 +212,8 @@
 					"from matplotlib import pyplot\r\n",
 					"\r\n",
 					"spark.conf.set('spark.sql.parquet.int96RebaseModeInRead', 'CORRECTED') # TimeStamp Issues\r\n",
-					"df = spark.read.load(lakepath + \"parquet/orders.parquet\", format=\"parquet\")\r\n",
-					"dfproducts = spark.read.load(lakepath + \"parquet/products.parquet\", format=\"parquet\")\r\n",
+					"df = spark.read.load(lakepath + \"parquet/orders*.parquet\", format=\"parquet\")\r\n",
+					"dfproducts = spark.read.load(lakepath + \"parquet/products*.parquet\", format=\"parquet\")\r\n",
 					"\r\n",
 					"df = df.select(\"Quantity\", \"TotalPrice\", \"ProductId\")\r\n",
 					"df = df.join(dfproducts, df.ProductId == dfproducts.Id)\r\n",
@@ -228,8 +228,8 @@
 					"df2 = df2.orderBy(col(\"Quantity\").desc())\r\n",
 					"\r\n",
 					"# First create a pandas frame\r\n",
-					"df1 = df1.toPandas()\r\n",
-					"df2 = df2.toPandas()\r\n",
+					"df1 = df1.limit(10).toPandas()\r\n",
+					"df2 = df2.limit(10).toPandas()\r\n",
 					"\r\n",
 					"\r\n",
 					"# Clear plot area\r\n",
@@ -246,7 +246,7 @@
 					"\r\n",
 					"pyplot.show()"
 				],
-				"execution_count": 46
+				"execution_count": null
 			}
 		]
 	}
