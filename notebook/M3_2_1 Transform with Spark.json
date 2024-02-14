@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "2837fb33-5707-4778-8890-c48b289e8289"
+				"spark.autotune.trackingId": "e3b6e97d-9f50-44c5-9e06-46ab3d5d0e29"
 			}
 		},
 		"metadata": {
@@ -102,7 +102,7 @@
 				"source": [
 					"from pyspark.sql.functions import *\r\n",
 					"\r\n",
-					"df = spark.read.csv(lakepath + 'csv/customers.csv', header=True, inferSchema=True)\r\n",
+					"df = spark.read.csv(lakepath + 'csv/customers*.csv', header=True, inferSchema=True)\r\n",
 					"\r\n",
 					"tran = df.withColumn(\"FullName\", concat_ws(\" \", col(\"FirstName\"), col(\"LastName\")))\r\n",
 					"tran = tran.drop(\"FirstName\", \"LastName\")\r\n",
@@ -154,7 +154,7 @@
 				"source": [
 					"from pyspark.sql.functions import *\r\n",
 					"\r\n",
-					"df = spark.read.csv(lakepath + 'csv/orders.csv', header=True, inferSchema=True)\r\n",
+					"df = spark.read.csv(lakepath + 'csv/orders*.csv', header=True, inferSchema=True)\r\n",
 					"# DateTime is en-US format (C#) so convert it first\r\n",
 					"dated = df.withColumn(\"OrderDateTS\", to_timestamp(col(\"OrderDate\"), \"MM/dd/yyyy HH:mm:ss\"))\r\n",
 					"dated = dated.drop(\"OrderDate\")\r\n",
