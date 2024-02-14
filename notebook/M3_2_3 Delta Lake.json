@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "421e8def-ea1a-4311-b666-63343e9e9df7"
+				"spark.autotune.trackingId": "79921fcb-691a-4ba9-bc49-f15074682d95"
 			}
 		},
 		"metadata": {
@@ -126,8 +126,8 @@
 					}
 				},
 				"source": [
-					"customers = spark.read.load(lakepath+\"csv/customers.csv\", format=\"csv\", header=True)\r\n",
-					"orders = spark.read.load(lakepath+\"csv/orders.csv\", format=\"csv\", header=True)\r\n",
+					"customers = spark.read.load(lakepath+\"csv/customers*.csv\", format=\"csv\", header=True)\r\n",
+					"orders = spark.read.load(lakepath+\"csv/orders*.csv\", format=\"csv\", header=True)\r\n",
 					"\r\n",
 					"# mode(\"append\") add to existing files\r\n",
 					"customers.write.format(\"delta\").mode(\"overwrite\").save(lakepath + deltapath + \"customers\")\r\n",
@@ -265,7 +265,7 @@
 				},
 				"source": [
 					"%%sql\r\n",
-					"SELECT * FROM delta.`abfss://files@patsynapselake.dfs.core.windows.net/sales100/deltabase/products` WHERE Id=0\r\n",
+					"SELECT * FROM delta.`abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/deltabase/products` WHERE Id=0\r\n",
 					"-- Not supported for unmanaged\r\n",
 					"--SELECT * FROM delta.`abfss://files@patsynapselake.dfs.core.windows.net/sales100/deltabase/products` VERSION AS OF 0 WHERE Id = 0"
 				],
@@ -303,8 +303,8 @@
 				},
 				"source": [
 					"%%sql\r\n",
-					"SELECT orders.Quantity, customers.LastName FROM delta.`abfss://files@patsynapselake.dfs.core.windows.net/sales100/deltabase/orders` AS orders\r\n",
-					"JOIN delta.`abfss://files@patsynapselake.dfs.core.windows.net/sales100/deltabase/customers` AS customers ON orders.CustomerId = customers.Id\r\n",
+					"SELECT orders.Quantity, customers.LastName FROM delta.`abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/deltabase/orders` AS orders\r\n",
+					"JOIN delta.`abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/deltabase/customers` AS customers ON orders.CustomerId = customers.Id\r\n",
 					""
 				],
 				"execution_count": null
@@ -357,8 +357,8 @@
 					}
 				},
 				"source": [
-					"customersdf = spark.read.load(lakepath+\"csv/customers.csv\", format=\"csv\", header=True)\r\n",
-					"ordersdf = spark.read.load(lakepath+\"csv/orders.csv\", format=\"csv\", header=True)\r\n",
+					"customersdf = spark.read.load(lakepath+\"csv/customers*.csv\", format=\"csv\", header=True)\r\n",
+					"ordersdf = spark.read.load(lakepath+\"csv/orders*.csv\", format=\"csv\", header=True)\r\n",
 					"\r\n",
 					"# Unmanaged Table. It specifies a file path\r\n",
 					"customersdf.write.format(\"delta\").option(\"path\", lakepath + deltapath + \"customers\").saveAsTable(\"customers\")\r\n",
@@ -472,7 +472,7 @@
 					"    Age INT\r\n",
 					")\r\n",
 					"USING DELTA\r\n",
-					"LOCATION 'abfss://files@patsynapselake.dfs.core.windows.net/sales100/deltabase/people';\r\n",
+					"LOCATION 'abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/deltabase/people';\r\n",
 					"\r\n",
 					"DESCRIBE people;"
 				],
@@ -834,7 +834,7 @@
 					"    TOP 100 *\r\n",
 					"FROM\r\n",
 					"    OPENROWSET(\r\n",
-					"        BULK 'https://patsynapselake.dfs.core.windows.net/files/sales100/deltabase/customers/',\r\n",
+					"        BULK 'abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/deltabase/customers/',\r\n",
 					"        FORMAT = 'DELTA'\r\n",
 					"    ) AS [result]\r\n",
 					""
