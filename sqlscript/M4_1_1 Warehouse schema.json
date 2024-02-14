@@ -1,0 +1,20 @@
+{
+	"name": "M4_1_1 Warehouse schema",
+	"properties": {
+		"folder": {
+			"name": "Module 4.1"
+		},
+		"content": {
+			"query": "CREATE DATABASE SalesDB COLLATE Latin1_General_100_BIN2_UTF8;\nGO;\n\nUSE SalesDB\nGO;\n\nCREATE SCHEMA Main;\nGO;\n\nCREATE TABLE Main.DimCustomers\n(\n    CustomerKey BIGINT IDENTITY NOT NULL,\n    CustomerAlternateKey NVARCHAR(15) NULL,\n    FirstName NVARCHAR(255) NOT NULL,\n    LastName NVARCHAR(255) NOT NULL,\n    CompanyName NVARCHAR(255) NOT NULL,\n    StreetName NVARCHAR(255) NOT NULL,\n    Number INT NOT NULL,\n    City NVARCHAR(255) NOT NULL,\n    Region NVARCHAR(255) NOT NULL,\n    Country NVARCHAR(255) NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = REPLICATE,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE Main.DimProducts\n(\n    CustomerKey BIGINT IDENTITY NOT NULL,\n    CustomerAlternateKey NVARCHAR(15) NULL,\n    BrandName NVARCHAR(255) NOT NULL,\n    [Name] NVARCHAR(255) NOT NULL,\n    Price DECIMAL NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = REPLICATE,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE Main.DimDates\n( \n    DateKey INT NOT NULL,\n    DateAltKey DATETIME NOT NULL,\n    DayOfMonth INT NOT NULL,\n    DayOfWeek INT NOT NULL,\n    DayName NVARCHAR(15) NOT NULL,\n    MonthOfYear INT NOT NULL,\n    MonthName NVARCHAR(15) NOT NULL,\n    CalendarQuarter INT  NOT NULL,\n    CalendarYear INT NOT NULL,\n    FiscalQuarter INT NOT NULL,\n    FiscalYear INT NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = REPLICATE,\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nCREATE TABLE Main.FactOrders\n(\n    OrderId BIGINT NOT NULL\n    OrderDateKey INT NOT NULL,\n    CustomerId BIGINT NOT NULL,\n    ProductId BIGINT NOT NULL,\n    Quantity INT NOT NULL,\n    TotalPrice DECIMAL NOT NULL,\n    \n)\nWITH\n(\n    DISTRIBUTION = HASH(OrderNumber),\n    CLUSTERED COLUMNSTORE INDEX\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlpool",
+				"poolName": "sqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
