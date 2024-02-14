@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "5e6d5609-c905-4970-beb3-70674313b9ff"
+				"spark.autotune.trackingId": "46bf346a-e792-4555-b7a5-801bb1880793"
 			}
 		},
 		"metadata": {
@@ -121,7 +121,7 @@
 				"source": [
 					"from pyspark.sql.functions import *\r\n",
 					"\r\n",
-					"df = spark.read.csv(lakepath + 'csv/orders.csv', header=True, inferSchema=True)\r\n",
+					"df = spark.read.csv(lakepath + 'csv/orders*.csv', header=True, inferSchema=True)\r\n",
 					"df = df.withColumn(\"OrderDateTS\", to_timestamp(col(\"OrderDate\"), \"MM/dd/yyyy HH:mm:ss\"))\r\n",
 					"df.write.saveAsTable(\"salesorders\", path=lakepath + \"/sales/orders\", format=\"parquet\", mode=\"overwrite\")\r\n",
 					"\r\n",
