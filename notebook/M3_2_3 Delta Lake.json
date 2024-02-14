@@ -20,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "0c22340a-387b-44d8-b9b8-695a3e17687e"
+				"spark.autotune.trackingId": "421e8def-ea1a-4311-b666-63343e9e9df7"
 			}
 		},
 		"metadata": {
@@ -34,16 +34,16 @@
 				"name": "python"
 			},
 			"a365ComputeOptions": {
-				"id": "/subscriptions/b61c14ee-0646-4d4a-857a-7e76d6a5065c/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/ps-snap/bigDataPools/sparky",
+				"id": "/subscriptions/b9fc0ff8-96c9-40f6-b971-1c711883d3a0/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/4dn-synapse/bigDataPools/sparky",
 				"name": "sparky",
 				"type": "Spark",
-				"endpoint": "https://ps-snap.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/sparky",
+				"endpoint": "https://4dn-synapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/sparky",
 				"auth": {
 					"type": "AAD",
 					"authResource": "https://dev.azuresynapse.net"
 				},
 				"sparkVersion": "3.3",
-				"nodeCount": 10,
+				"nodeCount": 3,
 				"cores": 4,
 				"memory": 28,
 				"automaticScaleJobs": false
@@ -81,7 +81,7 @@
 				"cell_type": "code",
 				"source": [
 					"global lakepath\r\n",
-					"lakepath = 'abfss://files@patsynapselake.dfs.core.windows.net/sales100/'\r\n",
+					"lakepath = 'abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/'\r\n",
 					"deltapath = 'deltabase/'"
 				],
 				"execution_count": 1
