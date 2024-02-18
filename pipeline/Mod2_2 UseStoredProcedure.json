@@ -5,6 +5,8 @@
 			{
 				"name": "Delete Lake files",
 				"type": "Delete",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -26,6 +28,8 @@
 			{
 				"name": "Create Sales Table",
 				"type": "SqlServerStoredProcedure",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Delete Lake files",
