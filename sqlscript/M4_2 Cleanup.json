@@ -1,0 +1,20 @@
+{
+	"name": "M4_2 Cleanup",
+	"properties": {
+		"folder": {
+			"name": "Module 4.1"
+		},
+		"content": {
+			"query": "DROP TABLE Main.FactOrders;\nDROP TABLE Main.DimCustomers;\nDROP TABLE Main.DimProducts;\nDROP TABLE Main.DimBrands;\nDROP TABLE Main.DimGeo;\n--DROP TABLE Main.DimDates;\nDROP TABLE Staging.FactOrders;\nDROP TABLE Staging.DimCustomers;\nDROP TABLE Staging.DimProducts;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlpool",
+				"poolName": "sqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
