@@ -19,6 +19,13 @@
 						"referenceName": "SalesFlow",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "files"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
