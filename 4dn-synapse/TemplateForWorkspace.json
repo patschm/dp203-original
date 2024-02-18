@@ -160,8 +160,7 @@
 							{
 								"activity": "Address Flow",
 								"dependencyConditions": [
-									"Succeeded",
-									"Completed"
+									"Succeeded"
 								]
 							}
 						],
@@ -209,6 +208,7 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/dataflows/AddressFlow')]",
 				"[concat(variables('workspaceId'), '/linkedServices/4dn-synapse-WorkspaceDefaultStorage')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
 				"[concat(variables('workspaceId'), '/dataflows/Customers Flow')]"
 			]
 		},
