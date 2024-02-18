@@ -1,5 +1,5 @@
 {
-	"name": "Mod22UseStoredProcedure",
+	"name": "Mod2_2 UseStoredProcedure",
 	"properties": {
 		"activities": [
 			{
@@ -15,10 +15,6 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataset": {
-						"referenceName": "saleslake",
-						"type": "DatasetReference"
-					},
 					"enableLogging": true,
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
