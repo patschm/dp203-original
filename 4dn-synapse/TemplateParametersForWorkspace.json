@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "4dn-synapse"
+		},
+		"4dn-synapse-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:4dn-synapse.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"SalesDB_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=ps-snap-ondemand.sql.azuresynapse.net;Initial Catalog=SalesDB"
+		},
+		"SqlPool_connectionString": {
+			"value": ""
+		},
+		"ps-snap-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ps-snap.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"4dn-synapse-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://4dnsynapselake.dfs.core.windows.net"
+		}
+	}
+}
