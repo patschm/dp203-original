@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Sales Flow",
+				"name": "Address Flow",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "SalesFlow",
+						"referenceName": "AddressFlow",
 						"type": "DataFlowReference"
 					},
 					"staging": {
