@@ -1,0 +1,151 @@
+{
+	"name": "Customers Flow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					},
+					"name": "CustomersCsv"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimGeo"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimCustomersOrig"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimCustomers"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LookupGeoId"
+				},
+				{
+					"name": "AddColums"
+				},
+				{
+					"name": "Select"
+				},
+				{
+					"name": "NotExists"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as long,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          CompanyName as string,",
+				"          StreetName as string,",
+				"          Number as integer,",
+				"          City as string,",
+				"          Region as string,",
+				"          Country as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'files',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     wildcardPaths:['sales_small/csv/customers*']) ~> CustomersCsv",
+				"source(output(",
+				"          Id as long,",
+				"          City as string,",
+				"          Region as string,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Main',",
+				"     tableName: 'DimGeo',",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     staged: true) ~> DimGeo",
+				"source(output(",
+				"          Id as long,",
+				"          AlternateKey as long,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          CompanyName as string,",
+				"          StreetName as string,",
+				"          Number as integer,",
+				"          GeoId as long,",
+				"          City as string,",
+				"          Region as string,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Staging',",
+				"     tableName: 'DimCustomers',",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     staged: true) ~> DimCustomersOrig",
+				"CustomersCsv, DimGeo lookup(CustomersCsv@City == DimGeo@City,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> LookupGeoId",
+				"LookupGeoId derive(AlternateId = CustomersCsv@Id,",
+				"          GeoId = DimGeo@Id) ~> AddColums",
+				"AddColums select(mapColumn(",
+				"          FirstName,",
+				"          LastName,",
+				"          CompanyName,",
+				"          StreetName,",
+				"          Number,",
+				"          City = CustomersCsv@City,",
+				"          Region = CustomersCsv@Region,",
+				"          Country = CustomersCsv@Country,",
+				"          AlternateId,",
+				"          GeoId",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Select",
+				"Select, DimCustomersOrig exists(AlternateId == AlternateKey,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> NotExists",
+				"NotExists sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Staging',",
+				"     tableName: 'DimCustomers',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     allowCopyCommand: true,",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DimCustomers"
+			]
+		}
+	}
+}
