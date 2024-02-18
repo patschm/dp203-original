@@ -1,5 +1,5 @@
 {
-	"name": "SalesFlow",
+	"name": "AddressFlow",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -64,7 +64,7 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> City",
 				"City aggregate(groupBy(City),",
-				"     each(match(name != 'City'), $$ = first($$))) ~> Distinct",
+				"     each(match(name!='City'), $$ = first($$))) ~> Distinct",
 				"Distinct alterRow(insertIf(true()),",
 				"     upsertIf(true())) ~> AlterRow1",
 				"AlterRow1 sink(allowSchemaDrift: true,",
