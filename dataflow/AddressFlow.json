@@ -11,6 +11,13 @@
 					},
 					"name": "CustomersCsv",
 					"description": "Read Customers Data"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimGeo"
 				}
 			],
 			"sinks": [
@@ -19,7 +26,7 @@
 						"referenceName": "SqlPool",
 						"type": "LinkedServiceReference"
 					},
-					"name": "DimGeo"
+					"name": "DimGeo1"
 				}
 			],
 			"transformations": [
@@ -30,7 +37,7 @@
 					"name": "Distinct"
 				},
 				{
-					"name": "AlterRow1"
+					"name": "CityNotExists"
 				}
 			],
 			"scriptLines": [
@@ -56,6 +63,20 @@
 				"     quoteChar: '\\\"',",
 				"     columnNamesAsHeader: true,",
 				"     wildcardPaths:['sales_small/csv/customers*.csv']) ~> CustomersCsv",
+				"source(output(",
+				"          Id as long,",
+				"          City as string,",
+				"          Region as string,",
+				"          Country as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Main',",
+				"     tableName: 'DimGeo',",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     staged: true) ~> DimGeo",
 				"CustomersCsv select(mapColumn(",
 				"          City,",
 				"          Region,",
@@ -65,9 +86,10 @@
 				"     skipDuplicateMapOutputs: true) ~> City",
 				"City aggregate(groupBy(City),",
 				"     each(match(name!='City'), $$ = first($$))) ~> Distinct",
-				"Distinct alterRow(insertIf(true()),",
-				"     upsertIf(true())) ~> AlterRow1",
-				"AlterRow1 sink(allowSchemaDrift: true,",
+				"Distinct, DimGeo exists(Distinct@City == DimGeo@City,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> CityNotExists",
+				"CityNotExists sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'table',",
 				"     store: 'synapseanalytics',",
@@ -76,14 +98,13 @@
 				"     insertable: true,",
 				"     updateable: false,",
 				"     deletable: false,",
-				"     upsertable: true,",
-				"     keys:['City'],",
+				"     upsertable: false,",
 				"     allowCopyCommand: true,",
 				"     staged: true,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> DimGeo"
+				"     errorHandlingOption: 'stopOnFirstError') ~> DimGeo1"
 			]
 		}
 	}
