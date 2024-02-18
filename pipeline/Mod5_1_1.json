@@ -40,7 +40,8 @@
 					{
 						"activity": "Address Flow",
 						"dependencyConditions": [
-							"Succeeded"
+							"Succeeded",
+							"Completed"
 						]
 					}
 				],
