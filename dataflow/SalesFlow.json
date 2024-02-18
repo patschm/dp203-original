@@ -1,0 +1,90 @@
+{
+	"name": "SalesFlow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					},
+					"name": "CustomersCsv",
+					"description": "Read Customers Data"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimGeo"
+				}
+			],
+			"transformations": [
+				{
+					"name": "City"
+				},
+				{
+					"name": "Distinct"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as long,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          CompanyName as string,",
+				"          StreetName as string,",
+				"          Number as integer,",
+				"          City as string,",
+				"          Region as string,",
+				"          Country as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'files',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     wildcardPaths:['sales_small/csv/customers*.csv']) ~> CustomersCsv",
+				"CustomersCsv select(mapColumn(",
+				"          City,",
+				"          Region,",
+				"          Country",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> City",
+				"City aggregate(groupBy(City),",
+				"     each(match(name != 'City'), $$ = first($$))) ~> Distinct",
+				"Distinct alterRow(insertIf(true()),",
+				"     upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Main',",
+				"     tableName: 'DimGeo',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: true,",
+				"     keys:['City'],",
+				"     allowCopyCommand: true,",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DimGeo"
+			]
+		}
+	}
+}
