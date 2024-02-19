@@ -1,0 +1,123 @@
+{
+	"name": "M_2_1 Orders Flow",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "sparky",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "0b028c94-1ceb-47d2-8b7f-acf8b9a9131f"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"enableDebugMode": false,
+			"kernelspec": {
+				"name": "synapse_pyspark",
+				"display_name": "Synapse PySpark"
+			},
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/b9fc0ff8-96c9-40f6-b971-1c711883d3a0/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/4dn-synapse/bigDataPools/sparky",
+				"name": "sparky",
+				"type": "Spark",
+				"endpoint": "https://4dn-synapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/sparky",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net"
+				},
+				"sparkVersion": "3.3",
+				"nodeCount": 3,
+				"cores": 4,
+				"memory": 28,
+				"automaticScaleJobs": false
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"import com.microsoft.spark.sqlanalytics\r\n",
+					"from com.microsoft.spark.sqlanalytics.Constants import Constants\r\n",
+					"from pyspark.sql.functions import *\r\n",
+					"from pyspark.sql.types import *\r\n",
+					"\r\n",
+					"orderspath = 'abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/csv/orders_*.csv'\r\n",
+					"stagingOrders = 'sqlpool.Staging.FactOrders2'\r\n",
+					"\r\n",
+					"dimCustomers = spark.read.synapsesql(\"sqlpool.Staging.DimCustomers\").withColumnRenamed(\"Id\", \"CustId\")\r\n",
+					"dimProducts = spark.read.synapsesql(\"sqlpool.Staging.DimProducts\").withColumnRenamed(\"Id\", \"ProdId\")\r\n",
+					"dimDates = spark.read.synapsesql(\"sqlpool.Main.DimDates\").withColumnRenamed(\"Id\", \"DateId\")"
+				],
+				"execution_count": 16
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					},
+					"collapsed": false
+				},
+				"source": [
+					"#display(dimDates.limit(5))\r\n",
+					"ordersCsv = spark.read \\\r\n",
+					"    .load(orderspath, format=\"csv\", inferSchema=True, header=True)\r\n",
+					"\r\n",
+					"ordersCsv = ordersCsv.withColumn(\"OrderDate\", to_date(col(\"OrderDate\"), \"MM/dd/yyyy HH:mm:ss\"))\r\n",
+					"\r\n",
+					"\r\n",
+					"# broadcast join if dimtable is small (typically 10M). The dimtable will be copied to each node.\r\n",
+					"ordersCsv = ordersCsv.join(broadcast(dimDates), ordersCsv.OrderDate == dimDates.AltKey, \"inner\").withColumn(\"OrderDateId\", col(\"DateId\"))\r\n",
+					"# use regular join if dimtable is huge\r\n",
+					"# ordersCsv = ordersCsv.join(imDates, ordersCsv.OrderDate == dimDates.AltKey).withColumn(\"OrderDateId\", col(\"DateId\"))\r\n",
+					"\r\n",
+					"#print(ordersCsv.schema)\r\n",
+					"# Fix type guesses\r\n",
+					"ordersCsv = ordersCsv \\\r\n",
+					"    .withColumn(\"Id\", col(\"Id\").cast(LongType())) \\\r\n",
+					"    .withColumn(\"OrderDate\", col(\"OrderDate\").cast(TimestampType())) \\\r\n",
+					"    .withColumn(\"CustomerId\", col(\"CustomerId\").cast(LongType())) \\\r\n",
+					"    .withColumn(\"ProductId\", col(\"ProductId\").cast(LongType())) \\\r\n",
+					"    .withColumn(\"TotalPrice\", col(\"TotalPrice\").cast(DecimalType(10, 2)))\r\n",
+					"print(ordersCsv.schema)\r\n",
+					"ordersCsv = ordersCsv.select(\"Id\", \"OrderDate\", \"OrderDateId\", \"CustomerId\", \"ProductId\", \"Quantity\", \"TotalPrice\")\r\n",
+					"\r\n",
+					"ordersCsv = ordersCsv.join(dimCustomers, ordersCsv.CustomerId == dimCustomers.AlternateKey)\r\n",
+					"\r\n",
+					"display(ordersCsv.limit(5))\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"\r\n",
+					"#ordersCsv.write.mode(\"overwrite\").synapsesql(stagingOrders, Constants.INTERNAL)\r\n",
+					""
+				],
+				"execution_count": 23
+			}
+		]
+	}
+}
