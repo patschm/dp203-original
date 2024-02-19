@@ -1,0 +1,151 @@
+{
+	"name": "ProductsFlow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+						"type": "LinkedServiceReference"
+					},
+					"name": "ProductsCsv"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimBrandsOrigin"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimProductsOrigin"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
+					"name": "DimProducts"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoinBrands"
+				},
+				{
+					"name": "AddColumns"
+				},
+				{
+					"name": "NotExists"
+				},
+				{
+					"name": "Project"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as long,",
+				"          BrandName as string,",
+				"          Name as string,",
+				"          Price as decimal(10,2)",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'files',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     wildcardPaths:['sales_small/csv/products*']) ~> ProductsCsv",
+				"source(output(",
+				"          Id as long,",
+				"          Name as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Main',",
+				"     tableName: 'DimBrands',",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     staged: true) ~> DimBrandsOrigin",
+				"source(output(",
+				"          Id as long,",
+				"          AlternateKey as long,",
+				"          BrandId as long,",
+				"          BrandName as string,",
+				"          Name as string,",
+				"          Price as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Staging',",
+				"     tableName: 'DimProducts',",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     staged: true) ~> DimProductsOrigin",
+				"ProductsCsv, DimBrandsOrigin lookup(BrandName == DimBrandsOrigin@Name,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> JoinBrands",
+				"JoinBrands derive(AlternateKey = ProductsCsv@Id,",
+				"          BrandId = DimBrandsOrigin@Id) ~> AddColumns",
+				"AddColumns, DimProductsOrigin exists(AddColumns@AlternateKey == DimProductsOrigin@AlternateKey,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> NotExists",
+				"NotExists select(mapColumn(",
+				"          Id = ProductsCsv@Id,",
+				"          BrandName,",
+				"          Name = ProductsCsv@Name,",
+				"          Price,",
+				"          AlternateKey,",
+				"          BrandId",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Project",
+				"Project sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Id as long,",
+				"          AlternateKey as long,",
+				"          BrandId as long,",
+				"          BrandName as string,",
+				"          Name as string,",
+				"          Price as decimal(10,2)",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Staging',",
+				"     tableName: 'DimProducts',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     allowCopyCommand: true,",
+				"     staged: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id,",
+				"          AlternateKey,",
+				"          BrandId,",
+				"          BrandName,",
+				"          Name,",
+				"          Price",
+				"     )) ~> DimProducts"
+			]
+		}
+	}
+}
