@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 4",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [Id]\n,[AlternateKey]\n,[FirstName]\n,[LastName]\n,[CompanyName]\n,[StreetName]\n,[Number]\n,[GeoId]\n,[City]\n,[Region]\n,[Country]\n FROM [Staging].[DimCustomers]\n\n --",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlpool",
+				"poolName": "sqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
