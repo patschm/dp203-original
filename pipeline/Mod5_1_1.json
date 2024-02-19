@@ -182,12 +182,8 @@
 					},
 					"sink": {
 						"type": "SqlPoolSink",
-						"allowPolyBase": true,
-						"polyBaseSettings": {
-							"rejectValue": 0,
-							"rejectType": "value",
-							"useTypeDefault": true
-						}
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
 					},
 					"enableStaging": false,
 					"translator": {
@@ -196,74 +192,93 @@
 							{
 								"source": {
 									"name": "AlternateKey",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								},
 								"sink": {
 									"name": "AlternateKey",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								}
 							},
 							{
 								"source": {
 									"name": "FirstName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								},
 								"sink": {
 									"name": "FirstName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								}
 							},
 							{
 								"source": {
 									"name": "LastName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								},
 								"sink": {
 									"name": "LastName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								}
 							},
 							{
 								"source": {
 									"name": "CompanyName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								},
 								"sink": {
 									"name": "CompanyName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								}
 							},
 							{
 								"source": {
 									"name": "StreetName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								},
 								"sink": {
 									"name": "StreetName",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								}
 							},
 							{
 								"source": {
 									"name": "Number",
-									"type": "Int32"
+									"type": "Int32",
+									"physicalType": "int"
 								},
 								"sink": {
 									"name": "Number",
-									"type": "Int32"
+									"type": "Int32",
+									"physicalType": "int"
 								}
 							},
 							{
 								"source": {
 									"name": "GeoId",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								},
 								"sink": {
 									"name": "GeoId",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								}
 							}
-						]
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
 					}
 				},
 				"inputs": [
@@ -282,6 +297,8 @@
 			{
 				"name": "Copy to live DimProducts",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Customers Flow",
@@ -311,12 +328,8 @@
 					},
 					"sink": {
 						"type": "SqlPoolSink",
-						"allowPolyBase": true,
-						"polyBaseSettings": {
-							"rejectValue": 0,
-							"rejectType": "value",
-							"useTypeDefault": true
-						}
+						"writeBehavior": "Insert",
+						"sqlWriterUseTableLock": false
 					},
 					"enableStaging": false,
 					"translator": {
@@ -325,44 +338,61 @@
 							{
 								"source": {
 									"name": "AlternateKey",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								},
 								"sink": {
 									"name": "AlternateKey",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								}
 							},
 							{
 								"source": {
 									"name": "BrandId",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								},
 								"sink": {
 									"name": "BrandId",
-									"type": "Int64"
+									"type": "Int64",
+									"physicalType": "bigint"
 								}
 							},
 							{
 								"source": {
 									"name": "Name",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								},
 								"sink": {
 									"name": "Name",
-									"type": "String"
+									"type": "String",
+									"physicalType": "nvarchar"
 								}
 							},
 							{
 								"source": {
 									"name": "Price",
-									"type": "Decimal"
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
 								},
 								"sink": {
 									"name": "Price",
-									"type": "Decimal"
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
 								}
 							}
-						]
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
 					}
 				},
 				"inputs": [
