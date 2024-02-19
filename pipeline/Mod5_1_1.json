@@ -68,6 +68,38 @@
 						"coreCount": 8,
 						"computeType": "General"
 					},
+					"traceLevel": "Fine",
+					"sourceStagingConcurrency": 1
+				}
+			},
+			{
+				"name": "Products Flow",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "ProductsFlow",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "files"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
 					"traceLevel": "Fine"
 				}
 			}
