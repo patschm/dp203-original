@@ -54,7 +54,7 @@
 			}
 		],
 		"typeProperties": {
-			"schema": "Staging",
+			"schema": "Main",
 			"table": "DimCustomers"
 		},
 		"sqlPool": {
