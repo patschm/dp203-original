@@ -1,0 +1,46 @@
+{
+	"name": "StagingDimProducts",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "AlternateKey",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "BrandId",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "BrandName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Price",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			}
+		],
+		"typeProperties": {
+			"schema": "Staging",
+			"table": "DimProducts"
+		},
+		"sqlPool": {
+			"referenceName": "sqlpool",
+			"type": "SqlPoolReference"
+		}
+	}
+}

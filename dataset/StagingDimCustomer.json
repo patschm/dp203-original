@@ -1,0 +1,65 @@
+{
+	"name": "StagingDimCustomer",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "Id",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "AlternateKey",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "FirstName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LastName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CompanyName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "StreetName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Number",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "GeoId",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "City",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Region",
+				"type": "nvarchar"
+			},
+			{
+				"name": "Country",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "Staging",
+			"table": "DimCustomers"
+		},
+		"sqlPool": {
+			"referenceName": "sqlpool",
+			"type": "SqlPoolReference"
+		}
+	}
+}
