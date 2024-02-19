@@ -68,8 +68,7 @@
 						"coreCount": 8,
 						"computeType": "General"
 					},
-					"traceLevel": "Fine",
-					"sourceStagingConcurrency": 1
+					"traceLevel": "Fine"
 				}
 			},
 			{
@@ -123,6 +122,10 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"dataflow": {
+						"referenceName": "ProductsFlow",
+						"type": "DataFlowReference"
+					},
 					"staging": {
 						"linkedService": {
 							"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
@@ -134,7 +137,8 @@
 						"coreCount": 8,
 						"computeType": "General"
 					},
-					"traceLevel": "Fine"
+					"traceLevel": "Fine",
+					"sourceStagingConcurrency": 1
 				}
 			}
 		],
