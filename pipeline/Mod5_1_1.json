@@ -153,6 +153,8 @@
 			{
 				"name": "Copy to live DimCustomer",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Customers Flow",
@@ -407,6 +409,45 @@
 						"type": "DatasetReference"
 					}
 				]
+			},
+			{
+				"name": "Prepare Staging Orders",
+				"type": "SynapseNotebook",
+				"dependsOn": [
+					{
+						"activity": "Copy to live DimProducts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Copy to live DimCustomer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebook": {
+						"referenceName": "M5_2_1 Orders Flow",
+						"type": "NotebookReference"
+					},
+					"snapshot": true,
+					"sparkPool": {
+						"referenceName": "sparky",
+						"type": "BigDataPoolReference"
+					},
+					"executorSize": "Small",
+					"driverSize": "Small"
+				}
 			}
 		],
 		"annotations": []
