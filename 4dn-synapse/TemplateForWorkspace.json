@@ -293,7 +293,6 @@
 				"[concat(variables('workspaceId'), '/linkedServices/4dn-synapse-WorkspaceDefaultStorage')]",
 				"[concat(variables('workspaceId'), '/dataflows/Customers Flow')]",
 				"[concat(variables('workspaceId'), '/dataflows/BrandsFlow')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
 				"[concat(variables('workspaceId'), '/dataflows/ProductsFlow')]"
 			]
 		},
@@ -787,7 +786,7 @@
 						"     multiple: false,",
 						"     pickup: 'any',",
 						"     broadcast: 'auto')~> LookupGeoId",
-						"LookupGeoId derive(AlternateId = CustomersCsv@Id,",
+						"LookupGeoId derive(AlternateKey = CustomersCsv@Id,",
 						"          GeoId = DimGeo@Id) ~> AddColums",
 						"AddColums select(mapColumn(",
 						"          FirstName,",
@@ -798,13 +797,13 @@
 						"          City = CustomersCsv@City,",
 						"          Region = CustomersCsv@Region,",
 						"          Country = CustomersCsv@Country,",
-						"          AlternateId,",
+						"          AlternateKey,",
 						"          GeoId,",
 						"          Id = CustomersCsv@Id",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> Select",
-						"Select, DimCustomersOrig exists(AlternateId == AlternateKey,",
+						"Select, DimCustomersOrig exists(Select@AlternateKey == DimCustomersOrig@AlternateKey,",
 						"     negate:true,",
 						"     broadcast: 'auto')~> NotExists",
 						"NotExists sink(allowSchemaDrift: true,",
@@ -822,6 +821,163 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true,",
 						"     errorHandlingOption: 'stopOnFirstError') ~> DimCustomers"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/4dn-synapse-WorkspaceDefaultStorage')]",
+				"[concat(variables('workspaceId'), '/linkedServices/SqlPool')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ProductsFlow')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+								"type": "LinkedServiceReference"
+							},
+							"name": "ProductsCsv"
+						},
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimBrandsOrigin"
+						},
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimProductsOrigin"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimProducts"
+						}
+					],
+					"transformations": [
+						{
+							"name": "JoinBrands"
+						},
+						{
+							"name": "AddColumns"
+						},
+						{
+							"name": "NotExists"
+						},
+						{
+							"name": "Project"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Id as long,",
+						"          BrandName as string,",
+						"          Name as string,",
+						"          Price as decimal(10,2)",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'files',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     wildcardPaths:['sales_small/csv/products*']) ~> ProductsCsv",
+						"source(output(",
+						"          Id as long,",
+						"          Name as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Main',",
+						"     tableName: 'DimBrands',",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     staged: true) ~> DimBrandsOrigin",
+						"source(output(",
+						"          Id as long,",
+						"          AlternateKey as long,",
+						"          BrandId as long,",
+						"          BrandName as string,",
+						"          Name as string,",
+						"          Price as decimal(10,2)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Staging',",
+						"     tableName: 'DimProducts',",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     staged: true) ~> DimProductsOrigin",
+						"ProductsCsv, DimBrandsOrigin lookup(BrandName == DimBrandsOrigin@Name,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> JoinBrands",
+						"JoinBrands derive(AlternateKey = ProductsCsv@Id,",
+						"          BrandId = DimBrandsOrigin@Id) ~> AddColumns",
+						"AddColumns, DimProductsOrigin exists(AddColumns@AlternateKey == DimProductsOrigin@AlternateKey,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> NotExists",
+						"NotExists select(mapColumn(",
+						"          Id = ProductsCsv@Id,",
+						"          BrandName,",
+						"          Name = ProductsCsv@Name,",
+						"          Price,",
+						"          AlternateKey,",
+						"          BrandId",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Project",
+						"Project sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Id as long,",
+						"          AlternateKey as long,",
+						"          BrandId as long,",
+						"          BrandName as string,",
+						"          Name as string,",
+						"          Price as decimal(10,2)",
+						"     ),",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Staging',",
+						"     tableName: 'DimProducts',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     allowCopyCommand: true,",
+						"     staged: true,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Id,",
+						"          AlternateKey,",
+						"          BrandId,",
+						"          BrandName,",
+						"          Name,",
+						"          Price",
+						"     )) ~> DimProducts"
 					]
 				}
 			},
@@ -1278,6 +1434,46 @@
 			"properties": {
 				"content": {
 					"query": "SELECT TOP (100) [Id]\n,[City]\n,[Region]\n,[Country]\n FROM [Main].[DimGeo]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sqlpool",
+						"poolName": "sqlpool"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT Count(*) FROM Staging.FactOrders2\n\nSELECT * FROM sys.tables",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "sqlpool",
+						"poolName": "sqlpool"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [Id]\n,[AlternateKey]\n,[FirstName]\n,[LastName]\n,[CompanyName]\n,[StreetName]\n,[Number]\n,[GeoId]\n,[City]\n,[Region]\n,[Country]\n FROM [Staging].[DimCustomers]\n\n --",
 					"metadata": {
 						"language": "sql"
 					},
@@ -3900,6 +4096,133 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/M_2_1 Orders Flow')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "sparky",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "0b028c94-1ceb-47d2-8b7f-acf8b9a9131f"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/b9fc0ff8-96c9-40f6-b971-1c711883d3a0/resourceGroups/Synapse/providers/Microsoft.Synapse/workspaces/4dn-synapse/bigDataPools/sparky",
+						"name": "sparky",
+						"type": "Spark",
+						"endpoint": "https://4dn-synapse.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/sparky",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.3",
+						"nodeCount": 3,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"import com.microsoft.spark.sqlanalytics\r\n",
+							"from com.microsoft.spark.sqlanalytics.Constants import Constants\r\n",
+							"from pyspark.sql.functions import *\r\n",
+							"from pyspark.sql.types import *\r\n",
+							"\r\n",
+							"orderspath = 'abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/csv/orders_*.csv'\r\n",
+							"stagingOrders = 'sqlpool.Staging.FactOrders2'\r\n",
+							"\r\n",
+							"dimCustomers = spark.read.synapsesql(\"sqlpool.Staging.DimCustomers\").withColumnRenamed(\"Id\", \"CustId\")\r\n",
+							"dimProducts = spark.read.synapsesql(\"sqlpool.Staging.DimProducts\").withColumnRenamed(\"Id\", \"ProdId\")\r\n",
+							"dimDates = spark.read.synapsesql(\"sqlpool.Main.DimDates\").withColumnRenamed(\"Id\", \"DateId\")"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"#display(dimDates.limit(5))\r\n",
+							"ordersCsv = spark.read \\\r\n",
+							"    .load(orderspath, format=\"csv\", inferSchema=True, header=True)\r\n",
+							"\r\n",
+							"ordersCsv = ordersCsv.withColumn(\"OrderDate\", to_date(col(\"OrderDate\"), \"MM/dd/yyyy HH:mm:ss\"))\r\n",
+							"\r\n",
+							"\r\n",
+							"# broadcast join if dimtable is small (typically 10M). The dimtable will be copied to each node.\r\n",
+							"ordersCsv = ordersCsv.join(broadcast(dimDates), ordersCsv.OrderDate == dimDates.AltKey, \"inner\").withColumn(\"OrderDateId\", col(\"DateId\"))\r\n",
+							"# use regular join if dimtable is huge\r\n",
+							"# ordersCsv = ordersCsv.join(imDates, ordersCsv.OrderDate == dimDates.AltKey).withColumn(\"OrderDateId\", col(\"DateId\"))\r\n",
+							"\r\n",
+							"#print(ordersCsv.schema)\r\n",
+							"# Fix type guesses\r\n",
+							"ordersCsv = ordersCsv \\\r\n",
+							"    .withColumn(\"Id\", col(\"Id\").cast(LongType())) \\\r\n",
+							"    .withColumn(\"OrderDate\", col(\"OrderDate\").cast(TimestampType())) \\\r\n",
+							"    .withColumn(\"CustomerId\", col(\"CustomerId\").cast(LongType())) \\\r\n",
+							"    .withColumn(\"ProductId\", col(\"ProductId\").cast(LongType())) \\\r\n",
+							"    .withColumn(\"TotalPrice\", col(\"TotalPrice\").cast(DecimalType(10, 2)))\r\n",
+							"print(ordersCsv.schema)\r\n",
+							"ordersCsv = ordersCsv.select(\"Id\", \"OrderDate\", \"OrderDateId\", \"CustomerId\", \"ProductId\", \"Quantity\", \"TotalPrice\")\r\n",
+							"\r\n",
+							"ordersCsv = ordersCsv.join(dimCustomers, ordersCsv.CustomerId == dimCustomers.AlternateKey)\r\n",
+							"\r\n",
+							"display(ordersCsv.limit(5))\r\n",
+							"\r\n",
+							"\r\n",
+							"\r\n",
+							"\r\n",
+							"#ordersCsv.write.mode(\"overwrite\").synapsesql(stagingOrders, Constants.INTERNAL)\r\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 23
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/sparky')]",
 			"type": "Microsoft.Synapse/workspaces/bigDataPools",
 			"apiVersion": "2019-06-01-preview",
@@ -3935,163 +4258,6 @@
 			},
 			"dependsOn": [],
 			"location": "westeurope"
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/ProductsFlow')]",
-			"type": "Microsoft.Synapse/workspaces/dataflows",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"linkedService": {
-								"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
-								"type": "LinkedServiceReference"
-							},
-							"name": "ProductsCsv"
-						},
-						{
-							"linkedService": {
-								"referenceName": "SqlPool",
-								"type": "LinkedServiceReference"
-							},
-							"name": "DimBrandsOrigin"
-						},
-						{
-							"linkedService": {
-								"referenceName": "SqlPool",
-								"type": "LinkedServiceReference"
-							},
-							"name": "DimProductsOrigin"
-						}
-					],
-					"sinks": [
-						{
-							"linkedService": {
-								"referenceName": "SqlPool",
-								"type": "LinkedServiceReference"
-							},
-							"name": "DimProducts"
-						}
-					],
-					"transformations": [
-						{
-							"name": "JoinBrands"
-						},
-						{
-							"name": "AddColumns"
-						},
-						{
-							"name": "NotExists"
-						},
-						{
-							"name": "Project"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          Id as long,",
-						"          BrandName as string,",
-						"          Name as string,",
-						"          Price as decimal(10,2)",
-						"     ),",
-						"     useSchema: false,",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false,",
-						"     format: 'delimited',",
-						"     fileSystem: 'files',",
-						"     columnDelimiter: ',',",
-						"     escapeChar: '\\\\',",
-						"     quoteChar: '\\\"',",
-						"     columnNamesAsHeader: true,",
-						"     wildcardPaths:['sales_small/csv/products*']) ~> ProductsCsv",
-						"source(output(",
-						"          Id as long,",
-						"          Name as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'synapseanalytics',",
-						"     schemaName: 'Main',",
-						"     tableName: 'DimBrands',",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     staged: true) ~> DimBrandsOrigin",
-						"source(output(",
-						"          Id as long,",
-						"          AlternateKey as long,",
-						"          BrandId as long,",
-						"          BrandName as string,",
-						"          Name as string,",
-						"          Price as decimal(10,2)",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'table',",
-						"     store: 'synapseanalytics',",
-						"     schemaName: 'Staging',",
-						"     tableName: 'DimProducts',",
-						"     isolationLevel: 'READ_UNCOMMITTED',",
-						"     staged: true) ~> DimProductsOrigin",
-						"ProductsCsv, DimBrandsOrigin lookup(BrandName == DimBrandsOrigin@Name,",
-						"     multiple: false,",
-						"     pickup: 'any',",
-						"     broadcast: 'auto')~> JoinBrands",
-						"JoinBrands derive(AlternateKey = ProductsCsv@Id,",
-						"          BrandId = DimBrandsOrigin@Id) ~> AddColumns",
-						"AddColumns, DimProductsOrigin exists(AddColumns@AlternateKey == DimProductsOrigin@AlternateKey,",
-						"     negate:true,",
-						"     broadcast: 'auto')~> NotExists",
-						"NotExists select(mapColumn(",
-						"          Id = ProductsCsv@Id,",
-						"          BrandName,",
-						"          Name = ProductsCsv@Name,",
-						"          Price,",
-						"          AlternateKey,",
-						"          BrandId",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> Project",
-						"Project sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          Id as long,",
-						"          AlternateKey as long,",
-						"          BrandId as long,",
-						"          BrandName as string,",
-						"          Name as string,",
-						"          Price as decimal(10,2)",
-						"     ),",
-						"     format: 'table',",
-						"     store: 'synapseanalytics',",
-						"     schemaName: 'Staging',",
-						"     tableName: 'DimProducts',",
-						"     insertable: true,",
-						"     updateable: false,",
-						"     deletable: false,",
-						"     upsertable: false,",
-						"     allowCopyCommand: true,",
-						"     staged: true,",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          Id,",
-						"          AlternateKey,",
-						"          BrandId,",
-						"          BrandName,",
-						"          Name,",
-						"          Price",
-						"     )) ~> DimProducts"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/linkedServices/4dn-synapse-WorkspaceDefaultStorage')]",
-				"[concat(variables('workspaceId'), '/linkedServices/SqlPool')]"
-			]
 		}
 	]
 }
