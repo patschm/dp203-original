@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "45d38e4e-2052-4f26-8560-ed26ea2d7c1d"
+				"spark.autotune.trackingId": "76137a1d-08f5-4cfe-a193-a05a19951d61"
 			}
 		},
 		"metadata": {
@@ -62,11 +62,11 @@
 					"orderspath = 'abfss://files@4dnsynapselake.dfs.core.windows.net/sales_small/csv/orders_*.csv'\r\n",
 					"stagingOrders = 'sqlpool.Staging.FactOrders2'\r\n",
 					"\r\n",
-					"dimCustomers = spark.read.synapsesql(\"sqlpool.Staging.DimCustomers\").withColumnRenamed(\"Id\", \"CustId\")\r\n",
-					"dimProducts = spark.read.synapsesql(\"sqlpool.Staging.DimProducts\").withColumnRenamed(\"Id\", \"ProdId\")\r\n",
+					"dimCustomers = spark.read.synapsesql(\"sqlpool.Main.DimCustomers\").withColumnRenamed(\"Id\", \"CustId\")\r\n",
+					"dimProducts = spark.read.synapsesql(\"sqlpool.Main.DimProducts\").withColumnRenamed(\"Id\", \"ProdId\")\r\n",
 					"dimDates = spark.read.synapsesql(\"sqlpool.Main.DimDates\").withColumnRenamed(\"Id\", \"DateId\")"
 				],
-				"execution_count": 16
+				"execution_count": 2
 			},
 			{
 				"cell_type": "code",
@@ -103,19 +103,24 @@
 					"    .withColumn(\"CustomerId\", col(\"CustomerId\").cast(LongType())) \\\r\n",
 					"    .withColumn(\"ProductId\", col(\"ProductId\").cast(LongType())) \\\r\n",
 					"    .withColumn(\"TotalPrice\", col(\"TotalPrice\").cast(DecimalType(10, 2)))\r\n",
-					"print(ordersCsv.schema)\r\n",
+					"#print(ordersCsv.schema)\r\n",
 					"ordersCsv = ordersCsv.select(\"Id\", \"OrderDate\", \"OrderDateId\", \"CustomerId\", \"ProductId\", \"Quantity\", \"TotalPrice\")\r\n",
 					"\r\n",
-					"ordersCsv = ordersCsv.join(dimCustomers, ordersCsv.CustomerId == dimCustomers.AlternateKey)\r\n",
+					"ordersCsv = ordersCsv \\\r\n",
+					"    .join(dimCustomers, ordersCsv.CustomerId == dimCustomers.AlternateKey) \\\r\n",
+					"    .join(dimProducts, ordersCsv.ProductId == dimProducts.AlternateKey) \\\r\n",
+					"    .withColumn(\"ProductId\", col(\"ProdId\")) \\\r\n",
+					"    .withColumn(\"CustomerId\", col(\"CustId\")) \\\r\n",
+					"    .select(\"Id\", \"OrderDate\", \"OrderDateId\", \"CustomerId\", \"ProductId\", \"Quantity\", \"TotalPrice\")\r\n",
 					"\r\n",
 					"display(ordersCsv.limit(5))\r\n",
 					"\r\n",
 					"# mode override drops te old table and recreated a new one\r\n",
 					"# mode append appends data to existing table\r\n",
-					"ordersCsv.write.mode(\"overwrite\").synapsesql(stagingOrders, Constants.INTERNAL)\r\n",
+					"#ordersCsv.write.mode(\"overwrite\").synapsesql(stagingOrders, Constants.INTERNAL)\r\n",
 					""
 				],
-				"execution_count": 23
+				"execution_count": 5
 			}
 		]
 	}
