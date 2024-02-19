@@ -298,14 +298,7 @@
 					},
 					"sink": {
 						"type": "SqlPoolSink",
-						"writeBehavior": "Upsert",
-						"upsertSettings": {
-							"keys": [
-								"AlternateKey"
-							],
-							"interimSchemaName": ""
-						},
-						"sqlWriterUseTableLock": false
+						"allowCopyCommand": true
 					},
 					"enableStaging": false,
 					"translator": {
@@ -314,61 +307,44 @@
 							{
 								"source": {
 									"name": "AlternateKey",
-									"type": "Int64",
-									"physicalType": "bigint"
+									"type": "Int64"
 								},
 								"sink": {
 									"name": "AlternateKey",
-									"type": "Int64",
-									"physicalType": "bigint"
+									"type": "Int64"
 								}
 							},
 							{
 								"source": {
 									"name": "BrandId",
-									"type": "Int64",
-									"physicalType": "bigint"
+									"type": "Int64"
 								},
 								"sink": {
 									"name": "BrandId",
-									"type": "Int64",
-									"physicalType": "bigint"
+									"type": "Int64"
 								}
 							},
 							{
 								"source": {
 									"name": "Name",
-									"type": "String",
-									"physicalType": "nvarchar"
+									"type": "String"
 								},
 								"sink": {
 									"name": "Name",
-									"type": "String",
-									"physicalType": "nvarchar"
+									"type": "String"
 								}
 							},
 							{
 								"source": {
 									"name": "Price",
-									"type": "Decimal",
-									"physicalType": "decimal",
-									"scale": 2,
-									"precision": 10
+									"type": "Decimal"
 								},
 								"sink": {
 									"name": "Price",
-									"type": "Decimal",
-									"physicalType": "decimal",
-									"scale": 2,
-									"precision": 10
+									"type": "Decimal"
 								}
 							}
-						],
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
+						]
 					}
 				},
 				"inputs": [
