@@ -120,6 +120,13 @@
 						"referenceName": "ProductsFlow",
 						"type": "DataFlowReference"
 					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "files/staging"
+					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
