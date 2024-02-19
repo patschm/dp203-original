@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "76137a1d-08f5-4cfe-a193-a05a19951d61"
+				"spark.autotune.trackingId": "f78b583f-37d7-49d9-9285-06c82a0ffdeb"
 			}
 		},
 		"metadata": {
@@ -117,10 +117,10 @@
 					"\r\n",
 					"# mode override drops te old table and recreated a new one\r\n",
 					"# mode append appends data to existing table\r\n",
-					"#ordersCsv.write.mode(\"overwrite\").synapsesql(stagingOrders, Constants.INTERNAL)\r\n",
+					"ordersCsv.write.mode(\"overwrite\").synapsesql(stagingOrders, Constants.INTERNAL)\r\n",
 					""
 				],
-				"execution_count": 5
+				"execution_count": 7
 			}
 		]
 	}
