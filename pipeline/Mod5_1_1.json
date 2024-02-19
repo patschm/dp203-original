@@ -106,7 +106,14 @@
 			{
 				"name": "Products Flow",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Brands Flow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -116,23 +123,18 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataflow": {
-						"referenceName": "ProductsFlow",
-						"type": "DataFlowReference"
-					},
 					"staging": {
 						"linkedService": {
 							"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
 							"type": "LinkedServiceReference"
 						},
-						"folderPath": "files/staging"
+						"folderPath": "files"
 					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
 					},
-					"traceLevel": "Fine",
-					"sourceStagingConcurrency": 1
+					"traceLevel": "Fine"
 				}
 			}
 		],
