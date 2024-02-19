@@ -16,6 +16,13 @@
 						"referenceName": "SqlPool",
 						"type": "LinkedServiceReference"
 					},
+					"name": "DimProductsOrig"
+				},
+				{
+					"linkedService": {
+						"referenceName": "SqlPool",
+						"type": "LinkedServiceReference"
+					},
 					"name": "DimBrands"
 				}
 			],
@@ -25,15 +32,18 @@
 						"referenceName": "SqlPool",
 						"type": "LinkedServiceReference"
 					},
-					"name": "DimBrandsUpd"
+					"name": "DimProducts"
 				}
 			],
 			"transformations": [
 				{
-					"name": "SelectBrands"
+					"name": "BrandId"
 				},
 				{
-					"name": "Distinct"
+					"name": "AddColumns"
+				},
+				{
+					"name": "ProjectDimProducts"
 				},
 				{
 					"name": "NotExists"
@@ -59,6 +69,22 @@
 				"     wildcardPaths:['sales_small/csv/products*']) ~> ProductsCsv",
 				"source(output(",
 				"          Id as long,",
+				"          AlternateKey as long,",
+				"          BrandId as long,",
+				"          BrandName as string,",
+				"          Name as string,",
+				"          Price as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'synapseanalytics',",
+				"     schemaName: 'Staging',",
+				"     tableName: 'DimProducts',",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     staged: true) ~> DimProductsOrig",
+				"source(output(",
+				"          Id as long,",
 				"          Name as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
@@ -69,26 +95,32 @@
 				"     tableName: 'DimBrands',",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     staged: true) ~> DimBrands",
-				"ProductsCsv select(mapColumn(",
+				"ProductsCsv, DimBrands lookup(BrandName == DimBrands@Name,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> BrandId",
+				"BrandId derive(AlternateKey = ProductsCsv@Id,",
+				"          BrandId = DimBrands@Id) ~> AddColumns",
+				"AddColumns select(mapColumn(",
+				"          Id = ProductsCsv@Id,",
+				"          Name = ProductsCsv@Name,",
+				"          Price,",
+				"          AlternateKey,",
+				"          BrandId,",
 				"          BrandName",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SelectBrands",
-				"SelectBrands aggregate(groupBy(BrandName),",
-				"     each(match(name !='BrandName'), $$ = first($$))) ~> Distinct",
-				"Distinct, DimBrands exists(BrandName == Name,",
-				"     negate:true,",
+				"     skipDuplicateMapOutputs: true) ~> ProjectDimProducts",
+				"ProjectDimProducts, DimProductsOrig lookup(ProjectDimProducts@AlternateKey == DimProductsOrig@AlternateKey,",
+				"     multiple: false,",
+				"     pickup: 'any',",
 				"     broadcast: 'auto')~> NotExists",
 				"NotExists sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     input(",
-				"          Id as long,",
-				"          Name as string",
-				"     ),",
 				"     format: 'table',",
 				"     store: 'synapseanalytics',",
-				"     schemaName: 'Main',",
-				"     tableName: 'DimBrands',",
+				"     schemaName: 'Staging',",
+				"     tableName: 'DimProducts',",
 				"     insertable: true,",
 				"     updateable: false,",
 				"     deletable: false,",
@@ -99,8 +131,13 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          Name = BrandName",
-				"     )) ~> DimBrandsUpd"
+				"          Id = ProjectDimProducts@Id,",
+				"          Name = ProjectDimProducts@Name,",
+				"          Price = ProjectDimProducts@Price,",
+				"          AlternateKey = ProjectDimProducts@AlternateKey,",
+				"          BrandId = ProjectDimProducts@BrandId,",
+				"          BrandName",
+				"     )) ~> DimProducts"
 			]
 		}
 	}
