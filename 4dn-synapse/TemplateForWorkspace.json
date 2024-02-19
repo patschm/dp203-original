@@ -198,6 +198,89 @@
 							"traceLevel": "Fine",
 							"sourceStagingConcurrency": 1
 						}
+					},
+					{
+						"name": "Brands Flow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "BrandsFlow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"ProductsCsv": {},
+									"DimBrands": {},
+									"DimBrandsUpd": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "files"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Products Flow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Brands Flow",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ProductsFlow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"ProductsCsv": {},
+									"DimBrandsOrigin": {},
+									"DimProductsOrigin": {},
+									"DimProducts": {}
+								}
+							},
+							"staging": {
+								"linkedService": {
+									"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+									"type": "LinkedServiceReference"
+								},
+								"folderPath": "files"
+							},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine",
+							"sourceStagingConcurrency": 1
+						}
 					}
 				],
 				"policy": {
@@ -208,8 +291,10 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/dataflows/AddressFlow')]",
 				"[concat(variables('workspaceId'), '/linkedServices/4dn-synapse-WorkspaceDefaultStorage')]",
+				"[concat(variables('workspaceId'), '/dataflows/Customers Flow')]",
+				"[concat(variables('workspaceId'), '/dataflows/BrandsFlow')]",
 				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]",
-				"[concat(variables('workspaceId'), '/dataflows/Customers Flow')]"
+				"[concat(variables('workspaceId'), '/dataflows/ProductsFlow')]"
 			]
 		},
 		{
@@ -475,6 +560,119 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/BrandsFlow')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+								"type": "LinkedServiceReference"
+							},
+							"name": "ProductsCsv"
+						},
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimBrands"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimBrandsUpd"
+						}
+					],
+					"transformations": [
+						{
+							"name": "SelectBrands"
+						},
+						{
+							"name": "Distinct"
+						},
+						{
+							"name": "NotExists"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Id as long,",
+						"          BrandName as string,",
+						"          Name as string,",
+						"          Price as decimal(10,2)",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'files',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     wildcardPaths:['sales_small/csv/products*']) ~> ProductsCsv",
+						"source(output(",
+						"          Id as long,",
+						"          Name as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Main',",
+						"     tableName: 'DimBrands',",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     staged: true) ~> DimBrands",
+						"ProductsCsv select(mapColumn(",
+						"          BrandName",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectBrands",
+						"SelectBrands aggregate(groupBy(BrandName),",
+						"     each(match(name!='BrandName'), $$ = first($$))) ~> Distinct",
+						"Distinct, DimBrands exists(BrandName == Name,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> NotExists",
+						"NotExists sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Id as long,",
+						"          Name as string",
+						"     ),",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Main',",
+						"     tableName: 'DimBrands',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     allowCopyCommand: true,",
+						"     staged: true,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Name = BrandName",
+						"     )) ~> DimBrandsUpd"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/4dn-synapse-WorkspaceDefaultStorage')]",
+				"[concat(variables('workspaceId'), '/linkedServices/SqlPool')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Customers Flow')]",
 			"type": "Microsoft.Synapse/workspaces/dataflows",
 			"apiVersion": "2019-06-01-preview",
@@ -601,7 +799,8 @@
 						"          Region = CustomersCsv@Region,",
 						"          Country = CustomersCsv@Country,",
 						"          AlternateId,",
-						"          GeoId",
+						"          GeoId,",
+						"          Id = CustomersCsv@Id",
 						"     ),",
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> Select",
@@ -3701,18 +3900,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/sqlpool')]",
-			"type": "Microsoft.Synapse/workspaces/sqlPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"collation": "SQL_Latin1_General_CP1_CI_AS",
-				"maxSizeBytes": 263882790666240,
-				"annotations": []
-			},
-			"dependsOn": [],
-			"location": "westeurope"
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/sparky')]",
 			"type": "Microsoft.Synapse/workspaces/bigDataPools",
 			"apiVersion": "2019-06-01-preview",
@@ -3736,6 +3923,175 @@
 			},
 			"dependsOn": [],
 			"location": "westeurope"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/sqlpool')]",
+			"type": "Microsoft.Synapse/workspaces/sqlPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"collation": "SQL_Latin1_General_CP1_CI_AS",
+				"maxSizeBytes": 263882790666240,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "westeurope"
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ProductsFlow')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "4dn-synapse-WorkspaceDefaultStorage",
+								"type": "LinkedServiceReference"
+							},
+							"name": "ProductsCsv"
+						},
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimBrandsOrigin"
+						},
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimProductsOrigin"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "SqlPool",
+								"type": "LinkedServiceReference"
+							},
+							"name": "DimProducts"
+						}
+					],
+					"transformations": [
+						{
+							"name": "JoinBrands"
+						},
+						{
+							"name": "AddColumns"
+						},
+						{
+							"name": "NotExists"
+						},
+						{
+							"name": "Project"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Id as long,",
+						"          BrandName as string,",
+						"          Name as string,",
+						"          Price as decimal(10,2)",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'files',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     wildcardPaths:['sales_small/csv/products*']) ~> ProductsCsv",
+						"source(output(",
+						"          Id as long,",
+						"          Name as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Main',",
+						"     tableName: 'DimBrands',",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     staged: true) ~> DimBrandsOrigin",
+						"source(output(",
+						"          Id as long,",
+						"          AlternateKey as long,",
+						"          BrandId as long,",
+						"          BrandName as string,",
+						"          Name as string,",
+						"          Price as decimal(10,2)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Staging',",
+						"     tableName: 'DimProducts',",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     staged: true) ~> DimProductsOrigin",
+						"ProductsCsv, DimBrandsOrigin lookup(BrandName == DimBrandsOrigin@Name,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> JoinBrands",
+						"JoinBrands derive(AlternateKey = ProductsCsv@Id,",
+						"          BrandId = DimBrandsOrigin@Id) ~> AddColumns",
+						"AddColumns, DimProductsOrigin exists(AddColumns@AlternateKey == DimProductsOrigin@AlternateKey,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> NotExists",
+						"NotExists select(mapColumn(",
+						"          Id = ProductsCsv@Id,",
+						"          BrandName,",
+						"          Name = ProductsCsv@Name,",
+						"          Price,",
+						"          AlternateKey,",
+						"          BrandId",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> Project",
+						"Project sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          Id as long,",
+						"          AlternateKey as long,",
+						"          BrandId as long,",
+						"          BrandName as string,",
+						"          Name as string,",
+						"          Price as decimal(10,2)",
+						"     ),",
+						"     format: 'table',",
+						"     store: 'synapseanalytics',",
+						"     schemaName: 'Staging',",
+						"     tableName: 'DimProducts',",
+						"     insertable: true,",
+						"     updateable: false,",
+						"     deletable: false,",
+						"     upsertable: false,",
+						"     allowCopyCommand: true,",
+						"     staged: true,",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          Id,",
+						"          AlternateKey,",
+						"          BrandId,",
+						"          BrandName,",
+						"          Name,",
+						"          Price",
+						"     )) ~> DimProducts"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/4dn-synapse-WorkspaceDefaultStorage')]",
+				"[concat(variables('workspaceId'), '/linkedServices/SqlPool')]"
+			]
 		}
 	]
 }
