@@ -1,0 +1,20 @@
+{
+	"name": "M2_2_1 Enable Synapse Analytics",
+	"properties": {
+		"folder": {
+			"name": "Module 6.2"
+		},
+		"content": {
+			"query": "-- Enable Synapse Link in Arure via portal, Prowershell or CLI\n-- Powershell\n-- Update-AzCosmosDBAccount -Name \"my-cosmos-db\" -ResourceGroupName \"my-rg\" -EnableAnalyticalStorage 1\n-- cli\n-- az cosmosdb update --name my-cosmos-db --resource-group my-rg --enable-analytical-storage true\n\n-- Next select wicht containers you want to replicate in analytics container\n-- Powershell\n-- New-AzCosmosDBSqlContainer -ResourceGroupName \"my-rg\" -AccountName \"my-cosmos-db\" -DatabaseName \"my-db\" -Name \"my-container\" -PartitionKeyKind \"hash\" -PartitionKeyPath \"/customer\" -AnalyticalStorageTtl -1\n-- cli\n-- az cosmosdb sql container create --resource-group my-rg --account-name my-cosmos-db --database-name my-db --name my-container --partition-key-path \"/productID\" --analytical-storage-ttl -1",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
