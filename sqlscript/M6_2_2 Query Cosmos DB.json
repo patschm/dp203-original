@@ -1,0 +1,20 @@
+{
+	"name": "M6_2_2 Query Cosmos DB",
+	"properties": {
+		"folder": {
+			"name": "Module 6.2"
+		},
+		"content": {
+			"query": "CREATE CREDENTIAL [4dn-cosmos-sales]\nWITH IDENTITY = 'SHARED ACCESS SIGNATURE', SECRET = 'Lt0uq8Db4AHLSwxzRURygeDglXAyd75H2R05JMLdiTfCrb0NxE407MK27KbKFoV03nIY3xhcoO3CACDbUREiQg=='\nGO\n\nSELECT TOP 100 *\nFROM OPENROWSET(​PROVIDER = 'CosmosDB',\n                CONNECTION = 'Account=4dn-cosmos-sales;Database=SalesDB',\n                OBJECT = 'sales',\n                SERVER_CREDENTIAL = '4dn-cosmos-sales'\n) AS [sales]\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
