@@ -54,10 +54,6 @@
 							"type": "Int32"
 						}
 					}
-				},
-				"linkedServiceName": {
-					"referenceName": "SalesDB",
-					"type": "LinkedServiceReference"
 				}
 			}
 		],
