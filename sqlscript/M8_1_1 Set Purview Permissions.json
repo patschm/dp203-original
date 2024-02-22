@@ -1,6 +1,9 @@
 {
 	"name": "M8_1_1 Set Purview Permissions",
 	"properties": {
+		"folder": {
+			"name": "Module 8"
+		},
 		"content": {
 			"query": "CREATE USER [4dnpurview] FROM EXTERNAL PROVIDER\nGO\n\nEXEC sp_addrolemember 'db_datareader', [4dnpurview]\nGO",
 			"metadata": {
