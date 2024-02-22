@@ -1,0 +1,17 @@
+{
+	"name": "M8_1_1 Set Purview Permissions",
+	"properties": {
+		"content": {
+			"query": "CREATE USER [4dnpurview] FROM EXTERNAL PROVIDER\nGO\n\nEXEC sp_addrolemember 'db_datareader', [4dnpurview]\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sqlpool",
+				"poolName": "sqlpool"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
