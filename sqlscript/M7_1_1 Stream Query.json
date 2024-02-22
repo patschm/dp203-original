@@ -1,0 +1,20 @@
+{
+	"name": "M7_1_1 Stream Query",
+	"properties": {
+		"folder": {
+			"name": "Module 7.1"
+		},
+		"content": {
+			"query": "SELECT\n    Device,\n    CreationTime,\n    MAX([Value]) AS [Max],\n    System.Timestamp() AS WindowEndTime\n    INTO [Destination]\nFROM [Source]\nGROUP BY Device, CreationTime, TUMBLING(Duration(second, 5), Offset(second, 0))\n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
