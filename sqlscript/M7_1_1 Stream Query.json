@@ -5,7 +5,7 @@
 			"name": "Module 7.1"
 		},
 		"content": {
-			"query": "SELECT\n    Device,\n    CreationTime,\n    MAX([Value]) AS [Max],\n    System.Timestamp() AS WindowEndTime\nINTO [Destination]\nFROM [Source]\nGROUP BY Device, CreationTime, TUMBLING(Duration(second, 5), Offset(second, 0))\n\n\n",
+			"query": "-- This query is ment for Stream Analytics.\n-- It serves no purpose here\n\nSELECT\n    Device,\n    CreationTime,\n    MAX([Value]) AS [Max],\n    System.Timestamp() AS WindowEndTime\nINTO [Destination]\nFROM [Source]\nGROUP BY Device, CreationTime, TUMBLING(Duration(second, 5), Offset(second, 0))\n\n\n",
 			"metadata": {
 				"language": "sql"
 			},
