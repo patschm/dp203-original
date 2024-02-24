@@ -47,3 +47,18 @@ FROM delta.`/delta/sales/products`
 -- COMMAND ----------
 
 SELECT * FROM SalesDB.dim_products
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ## Create Dashboard in SQL Warehous
+-- MAGIC - Create grouping
+-- MAGIC ```sql
+-- MAGIC SELECT BrandName, count(*) As NrProducts FROM salesdb.dim_products
+-- MAGIC GROUP BY BrandName
+-- MAGIC ```
+-- MAGIC - Create List query
+-- MAGIC ```sql
+-- MAGIC SELECT BrandName, Name FROM salesdb.dim_products
+-- MAGIC ```
+-- MAGIC - Create a dashbord and add visualizations for the queries
